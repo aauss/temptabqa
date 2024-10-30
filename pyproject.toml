@@ -1,0 +1,17 @@
+[project]
+name = "temptabqa"
+version = "0.1.0"
+description = "Codebase for TempTabQA paper"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "datasets>=3.0.2",
+    "ruff>=0.7.1",
+    "torch>=2.5.1",
+    "tqdm>=4.66.6",
+    "transformers>=4.46.1",
+]
+
+[tool.uv]
+dev-dependencies = ["ipykernel>=6.29.5"]
