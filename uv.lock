@@ -1863,7 +1863,6 @@ dependencies = [
     { name = "torch" },
     { name = "tqdm" },
     { name = "transformers" },
-    { name = "word2number" },
 ]
 
 [package.dev-dependencies]
@@ -1891,7 +1890,6 @@ requires-dist = [
     { name = "torch", specifier = ">=2.5.1" },
     { name = "tqdm" },
     { name = "transformers", specifier = ">=4.35.2" },
-    { name = "word2number", specifier = ">=1.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -2133,12 +2131,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/56/fc/238c424fd7f4ebb25
 wheels = [
     { url = "https://files.pythonhosted.org/packages/21/02/88b65cc394961a60c43c70517066b6b679738caf78506a5da7b88ffcb643/widgetsnbextension-4.0.13-py3-none-any.whl", hash = "sha256:74b2692e8500525cc38c2b877236ba51d34541e6385eeed5aec15a70f88a6c71", size = 2335872 },
 ]
-
-[[package]]
-name = "word2number"
-version = "1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4a/29/a31940c848521f0725f0df6b25dca8917f13a2025b0e8fcbe5d0457e45e6/word2number-1.1.zip", hash = "sha256:70e27a5d387f67b04c71fbb7621c05930b19bfd26efd6851e6e0f9969dcde7d0", size = 9723 }
 
 [[package]]
 name = "xxhash"

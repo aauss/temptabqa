@@ -33,7 +33,7 @@ def prepare_prompt(context: str, question: str, method: str) -> str:
             question : {question}
             context : ***{context}***
             answer :"""
-        case "few_shpt":
+        case "few_shot":
             return f"""
             Answer the question based on the context provided (take the current year as 2022)
             generate only the relevant answer do not include the question in it thus generate small answer within 1 to 10 words.
@@ -67,6 +67,42 @@ def prepare_prompt(context: str, question: str, method: str) -> str:
             question : {question}
             context : ***{context}***
             answer :"""
+        case "CoT":
+            return f"""
+            Answer the question based on the context provided (take the current year as 2022)
+            generate only the relevant answer do not include the question and unnecessary verbs in it thus generate small answer within 1 to 10 words.
+            Also give the proper reasoning with the answer, first answer then the reason for the generated answer.
+
+            question :
+            How old was Charles Brenton Huggins when he won the Nobel Prize in 1966?
+
+            context : ***category
+            nobel
+
+            Charles Brenton Huggins
+            Born	( | 1901-09-22 | ) | September 22, 1901 | Halifax, Nova Scotia
+            Citizenship	Canadian / American
+            Awards	Nobel Prize for Physiology or Medicine | (1966) | Gairdner Foundation International Award | (1966)
+            ['Charles Brenton Huggins nobel.jpg | Charles Brenton Huggins']***
+            answer and reasoning: 65 years old && Charles was born in 1901 and he won the price in 1966, thus he was 65 years old. (1966 - 1901)
+            ###
+            question : When was the last time that Frederick John Perry won the Davis Cup?
+            context : ***category
+            tennis
+
+            Full name
+            Frederick John Perry
+
+            Died
+            2 February 1995 | (1995-02-02) | (aged 85) | Melbourne, Victoria, Australia
+
+            Team competitions
+            Davis Cup	W | (1933, 1934, 1935, 1936)***
+            answer and reasoning: 1936 && He won the davis cup four times among them 1936 is the lastest year in which he won.
+            ###
+            question : {question}
+            context : ***{context}***
+            answer and reasoning: """
 
 
 def init_model_and_tokenizer() -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
@@ -93,33 +129,17 @@ def init_model_and_tokenizer() -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
     return model, tokenizer
 
 
-def generate(
-    prompt, model: LlamaPreTrainedModel, tokenizer: PreTrainedTokenizerFast
-) -> str:
+def generate(prompt, model: LlamaPreTrainedModel, tokenizer: PreTrainedTokenizerFast) -> str:
     # Strip because of: https://huggingface.co/meta-llama/Llama-2-7b-hf
     message = [
         {"role": "user", "content": prompt.strip()},
     ]
     # Ref: https://huggingface.co/docs/transformers/main/en/chat_templating
-    tokenized_chat = tokenizer.apply_chat_template(
-        message, tokenize=True, return_tensors="pt", add_generation_prompt=True
-    ).to("cuda:0")
-    outputs = model.generate(tokenized_chat, max_new_tokens=200)
-    return tokenizer.decode(
-        outputs[0][len(tokenized_chat[0]) :], skip_special_tokens=True
+    tokenized_chat = tokenizer.apply_chat_template(message, tokenize=True, return_tensors="pt").to(
+        "cuda:0"
     )
-
-
-# def generate(
-#     prompt, model: LlamaPreTrainedModel, tokenizer: PreTrainedTokenizerFast
-# ) -> str:
-#     model_inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
-#     print(model_inputs)
-#     output = model.generate(**model_inputs, max_new_tokens=10)
-#     print(output)
-#     return tokenizer.decode(
-#         output[0][len(model_inputs["input_ids"][0]) :], skip_special_tokens=True
-#     ).strip()
+    outputs = model.generate(tokenized_chat, max_new_tokens=600)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).split("[/INST]")[1]
 
 
 def _load_tables_as_json() -> dict[int, dict]:
@@ -137,9 +157,7 @@ def _load_tables_as_json() -> dict[int, dict]:
 
 def _load_qa_dev_set() -> pd.DataFrame:
     """Load dev set containing questions, answers, and categories that can be linked to tables via their table ID"""
-    return pd.read_csv(
-        CWD / "../../../data/maindata/qapairs/dev-set/dev-set.csv", index_col=0
-    )
+    return pd.read_csv(CWD / "../../../data/maindata/qapairs/dev-set/dev-set.csv", index_col=0)
 
 
 def _linearize_json_tables(id_to_json: dict[int, dict]) -> dict[int, str]:
@@ -167,9 +185,7 @@ def _linearize_json_tables(id_to_json: dict[int, dict]) -> dict[int, str]:
                     if sub_key == key:
                         table_as_str = table_as_str + str(table[key][sub_key]) + "\n"
                     else:
-                        table_as_str = (
-                            table_as_str + sub_key + "\t" + table[key][sub_key] + "\n"
-                        )
+                        table_as_str = table_as_str + sub_key + "\t" + table[key][sub_key] + "\n"
                 table_as_str = table_as_str + "\n"
             else:
                 table_as_str = table_as_str + key + "\n" + table[key] + "\n\n"
@@ -191,7 +207,7 @@ if __name__ == "__main__":
 
     df = _load_qa_dev_set()
 
-    df_eval = df.copy().loc[:100]
+    df_eval = df.copy()
 
     model, tokenizer = init_model_and_tokenizer()
     all_output = []
@@ -200,8 +216,8 @@ if __name__ == "__main__":
         question = df_eval["question"][i]
 
         context = tables_as_str[table_id]
-        input_text = prepare_prompt(context, question, "zero_shot")
+        input_text = prepare_prompt(context, question, "CoT")
         result = generate(input_text, model, tokenizer)
         all_output.append(result)
     df_eval["predicted_answer"] = all_output
-    df_eval.to_csv("test_llama.csv", index=False, quoting=1)
+    df_eval.to_csv("llama2_own_CoT.csv", index=False, quoting=1)
