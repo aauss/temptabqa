@@ -6,7 +6,7 @@ from rouge_score import rouge_scorer
 import sys
 from evaluate import load
 import re
-from word2number import w2n
+# from word2number import w2n
 from datetime import datetime
 import calendar
 
