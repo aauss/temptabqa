@@ -2,8 +2,6 @@ import argparse
 import glob
 import json
 import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 from pathlib import Path
 
 import pandas as pd
@@ -20,8 +18,9 @@ from transformers import (
     PreTrainedTokenizerFast,
 )
 
-load_dotenv()
 CWD = Path().resolve()
+load_dotenv(CWD / "../../../.env")
+
 
 
 def construct_conversation(context: str, question: str, method: str) -> list[dict[str, str]]:
@@ -157,7 +156,7 @@ def construct_conversation(context: str, question: str, method: str) -> list[dic
 
 def init_model_and_tokenizer() -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
     # Reference: https://www.reddit.com/r/huggingface/comments/1bv1kfk/what_is_the_difference_between/
-    model_name = "meta-llama/Llama-2-7b-chat-hf"
+    model_name = "meta-llama/Llama-2-70b-chat-hf"
     access_token = os.environ["HF_TOKEN"]
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -201,9 +200,11 @@ def _load_tables_as_json() -> dict[int, dict]:
     return id_to_json
 
 
-def _load_qa_data_set(data_set:str) -> pd.DataFrame:
+def _load_qa_data_set(data_set: str) -> pd.DataFrame:
     """Load dev set containing questions, answers, and categories that can be linked to tables via their table ID"""
-    return pd.read_csv(CWD / f"../../../data/maindata/qapairs/{data_set}-set/{data_set}-set.csv", index_col=0)
+    return pd.read_csv(
+        CWD / f"../../../data/maindata/qapairs/{data_set}-set/{data_set}-set.csv", index_col=0
+    )
 
 
 def _linearize_json_tables(id_to_json: dict[int, dict]) -> dict[int, str]:
@@ -275,7 +276,7 @@ if __name__ == "__main__":
     args = parse_args()
     id_to_json = _load_tables_as_json()
     tables_as_str = _linearize_json_tables(id_to_json)
-    df_eval = _load_qa_data_set(args.data_set)
+    df_eval = _load_qa_data_set(args.data_set).head(3)
 
     # Example of nested values
     id_to_json[998]
@@ -293,9 +294,17 @@ if __name__ == "__main__":
         conversation = construct_conversation(context, question, args.mode)
         result = generate(conversation, model, tokenizer)
         if args.mode == "CoT":
-            result = result.split("&&")[0]  # Prompting encourages to respond with answer && reasoning
-            result = result.split("Reasoning:")[0]  # Remove reasoning if above format is not followed
+            result = result.split("&&")[
+                0
+            ]  # Prompting encourages to respond with answer && reasoning
+            result = result.split("Reasoning:")[
+                0
+            ]  # Remove reasoning if above format is not followed
         all_output.append(result.strip().replace("\n", ""))  # Remove newlines as they break CSV
+        if i % 2 == 0:
+            df_checkpoint = df_eval.copy().iloc[:len(all_output)]
+            df_checkpoint["predicted_answer"] = all_output
+            df_checkpoint.to_csv(f"checkpoint_{args.output_path}", index=False, quoting=1)
 
     df_eval["predicted_answer"] = all_output
-    df_eval.to_csv("test.csv", index=False, quoting=1)
+    df_eval.to_csv(args.output_path, index=False, quoting=1)
