@@ -8,7 +8,13 @@ import pandas as pd
 import torch
 from dotenv import load_dotenv
 from tqdm import tqdm
-from transformers import (
+
+# Because HF_HOME is saved in dotenv, .env needs to be loaded before torch to take effect.
+# https://github.com/huggingface/transformers/issues/25305
+CWD = Path().resolve()
+load_dotenv(CWD / "../../../.env")
+
+from transformers import (  # noqa: E402
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
@@ -17,10 +23,6 @@ from transformers import (
     LlamaTokenizerFast,
     PreTrainedTokenizerFast,
 )
-
-CWD = Path().resolve()
-load_dotenv(CWD / "../../../.env")
-
 
 
 def construct_conversation(context: str, question: str, method: str) -> list[dict[str, str]]:
@@ -171,9 +173,12 @@ def init_model_and_tokenizer() -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
         token=access_token,
         resume_download=None,
         quantization_config=quantization_config,
-    )  # .to("cuda:1")
+    )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_name, use_fast=True, token=access_token, resume_download=None
+        model_name,
+        use_fast=True,
+        token=access_token,
+        resume_download=None,
     )
     return model, tokenizer
 
@@ -276,7 +281,7 @@ if __name__ == "__main__":
     args = parse_args()
     id_to_json = _load_tables_as_json()
     tables_as_str = _linearize_json_tables(id_to_json)
-    df_eval = _load_qa_data_set(args.data_set).head(3)
+    df_eval = _load_qa_data_set(args.data_set)
 
     # Example of nested values
     id_to_json[998]
@@ -301,8 +306,8 @@ if __name__ == "__main__":
                 0
             ]  # Remove reasoning if above format is not followed
         all_output.append(result.strip().replace("\n", ""))  # Remove newlines as they break CSV
-        if i % 2 == 0:
-            df_checkpoint = df_eval.copy().iloc[:len(all_output)]
+        if i % 10 == 0:
+            df_checkpoint = df_eval.copy().iloc[: len(all_output)]
             df_checkpoint["predicted_answer"] = all_output
             df_checkpoint.to_csv(f"checkpoint_{args.output_path}", index=False, quoting=1)
 

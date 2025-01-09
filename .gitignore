@@ -13,4 +13,6 @@ __pycache__
 # Misc
 wget-log
 test.ipynb
+*.out
+machine.file*
 

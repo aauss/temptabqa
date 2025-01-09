@@ -4,7 +4,7 @@
 if [[ $(hostname) =~ ^gpu-[a-z]-[0-9]+$ ]]; then
     echo "Hostname matches the pattern: $HOSTNAME"
     # Get VENV_PATH
-    source ../../../.env
+    source /rds/user/aa2613/hpc-work/temptabqa/.env
 
     # Check if the virtual environment exists
     if [[ -d "$VENV_PATH" ]]; then
