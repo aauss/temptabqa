@@ -32,6 +32,7 @@ gpu = [
 dev-dependencies = [
     "ipykernel",
     "mypy>=1.13.0",
+    "nbclient>=0.10.2",
     "nbformat>=4.2.0",
     "ruff",
 ]
