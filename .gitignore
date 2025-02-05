@@ -1,6 +1,6 @@
 # macOS
 **/.DS_Store
-
+*.DS_Store
 # Python tmp files
 __pycache__
 .mypy
