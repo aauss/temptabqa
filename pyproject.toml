@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "pandas==2.2.2",
     "tqdm",
-    "easyllm",
     "pyarrow==17.0.0",
     "transformers>=4.35.2",
     "torch>=2.5.1",
