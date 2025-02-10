@@ -22,7 +22,7 @@
 #! Note that the job submission script will enforce no more than 32 cpus per GPU.
 #SBATCH --gres=gpu:1
 #! How much wallclock time will be required?
-#SBATCH --time=04:00:00
+#SBATCH --time=00:20:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=ALL
 #! Uncomment this to prevent the job from being requeued (e.g. if
@@ -54,22 +54,22 @@ module load rhel8/default-amp              # REQUIRED - loads the basic environm
 #! Insert additional module load commands after this line if needed:
 
 # Activate python venv if on Uni HPC
-source /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/manually_source_venv.sh
-echo "This is my current path ($PATH)"
+source /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/predictions/Llama/experiment_3/source_venv.sh
 echo "Python path: $(which python)"
 
 
 #! Full path to application executable: 
-application="python"
+application="python"s
+SCRIPT="/home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/predictions/Llama/experiment_3/experiment_3_llama2_eval_own.py"
 
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m zero_shot -o llama2_zero_shot_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m zero_shot -o llama2_zero_shot_tail.csv
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m few_shot -o llama2_few_shot_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m few_shot -o llama2_few_shot_tail.csv
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m CoT -o llama2_CoT_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv
+# $SCRIPT -d head -m zero_shot -o llama2_zero_shot_head.csv
+# $SCRIPT -d tail -m zero_shot -o llama2_zero_shot_tail.csv
+# $SCRIPT -d head -m few_shot -o llama2_few_shot_head.csv
+# $SCRIPT -d tail -m few_shot -o llama2_few_shot_tail.csv
+# $SCRIPT -d head -m CoT -o llama2_CoT_head.csv
+# $SCRIPT -d tail -m CoT -o llama2_CoT_tail.csv
 #! Run options for the application:
-options="/home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv"
+options="$SCRIPT -d tail -m CoT -o llama2_CoT_tail.csv"
 
 #! Work directory (i.e. where the job will run):
 workdir="$SLURM_SUBMIT_DIR"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
