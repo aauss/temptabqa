@@ -30,6 +30,7 @@ gpu = [
 [tool.uv]
 dev-dependencies = [
     "ipykernel",
+    "label-studio>=1.13.1",
     "mypy>=1.13.0",
     "nbclient>=0.10.2",
     "nbformat>=4.2.0",
