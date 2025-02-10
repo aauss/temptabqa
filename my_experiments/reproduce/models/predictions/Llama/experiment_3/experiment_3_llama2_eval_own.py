@@ -12,7 +12,7 @@ from tqdm import tqdm
 # Because HF_HOME is saved in dotenv, .env needs to be loaded before torch to take effect.
 # https://github.com/huggingface/transformers/issues/25305
 CWD = Path().resolve()
-load_dotenv(CWD / "../../../.env")
+load_dotenv(CWD / "../../..//../../.env")
 
 from transformers import (  # noqa: E402
     AutoModelForCausalLM,
@@ -196,7 +196,7 @@ def _load_tables_as_json() -> dict[int, dict]:
     """Load wiki tables as json into dict with table ID as key and table as value"""
     id_to_json = {}
 
-    for filename in glob.glob(str(CWD / "../../../data/maindata/tables/json/*")):
+    for filename in glob.glob(str(CWD / "../../../../../data/maindata/tables/json/*")):
         filename: Path = Path(filename)
         with open(filename, "r") as f:
             wiki_table_json = json.load(f)
@@ -208,7 +208,7 @@ def _load_tables_as_json() -> dict[int, dict]:
 def _load_qa_data_set(data_set: str) -> pd.DataFrame:
     """Load dev set containing questions, answers, and categories that can be linked to tables via their table ID"""
     return pd.read_csv(
-        CWD / f"../../../data/maindata/qapairs/{data_set}-set/{data_set}-set.csv", index_col=0
+        CWD / f"../../../../../data/maindata/qapairs/{data_set}-set/{data_set}-set.csv", index_col=0
     )
 
 

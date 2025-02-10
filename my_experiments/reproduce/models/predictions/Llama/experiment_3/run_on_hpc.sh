@@ -54,7 +54,7 @@ module load rhel8/default-amp              # REQUIRED - loads the basic environm
 #! Insert additional module load commands after this line if needed:
 
 # Activate python venv if on Uni HPC
-source /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/manually_source_venv.sh
+source /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/manually_source_venv.sh
 echo "This is my current path ($PATH)"
 echo "Python path: $(which python)"
 
@@ -62,14 +62,14 @@ echo "Python path: $(which python)"
 #! Full path to application executable: 
 application="python"
 
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d head -m zero_shot -o llama2_zero_shot_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d tail -m zero_shot -o llama2_zero_shot_tail.csv
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d head -m few_shot -o llama2_few_shot_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d tail -m few_shot -o llama2_few_shot_tail.csv
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d head -m CoT -o llama2_CoT_head.csv
-# /home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m zero_shot -o llama2_zero_shot_head.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m zero_shot -o llama2_zero_shot_tail.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m few_shot -o llama2_few_shot_head.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m few_shot -o llama2_few_shot_tail.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d head -m CoT -o llama2_CoT_head.csv
+# /home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv
 #! Run options for the application:
-options="/home/aa2613/rds/hpc-work/temptabqa/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv"
+options="/home/aa2613/rds/hpc-work/temptabqa/my_experiments/reproduce/models/evaluation/LLama/llama2_eval_own.py -d tail -m CoT -o llama2_CoT_tail.csv"
 
 #! Work directory (i.e. where the job will run):
 workdir="$SLURM_SUBMIT_DIR"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
