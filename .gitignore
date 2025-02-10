@@ -16,3 +16,6 @@ test.ipynb
 *.out
 machine.file*
 
+# Quarto
+*/quarto_reports/_output/*
+*/quarto_reports/iframe_figures/*
