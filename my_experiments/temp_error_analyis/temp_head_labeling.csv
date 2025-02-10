@@ -365,7 +365,7 @@ How many years was Paul Gauguin married to Mette-Sophie Gad?,21,349,COUNT,True
 What is the Notable work by Pierre Auguste Cot in 1873?,Springtime,350,UNKNOWN,False
 How old was Pierre Auguste Cot when he died?,46,350,AGE,True
 When did Pierre Auguste Cot write The Storm?,He wrote the storm in 1880.,350,TEMPORAL,True
-How old was Pierre Auguste Cot at his death?,46,350,AGE,False
+How old was Pierre Auguste Cot at his death?,46,350,AGE,True
 When did Pierre Auguste Cot write Springtime?,He wrote springtime in 1873.,350,TEMPORAL,True
 How old was Pierre Auguste Cot when he painted The Storm?,43,350,AGE,True
 In what year was Pierre Auguste Cot born?,1837,350,TEMPORAL,True
@@ -525,7 +525,7 @@ For how many years did Black Dog Siding operate under its original name?,90,464,
 How long did Black Dog Siding remain open?,102 years,464,TEMPORAL,True
 What is the status of Black Dog Halt as of today?,disused,464,UNKNOWN,False
 When did the Black Dog Halt first operated?,3 November 1863,464,TEMPORAL,True
-On what date was the second opening of the Cheltenham Spa station?,7 July 1919,465,TEMPORAL,False
+On what date was the second opening of the Cheltenham Spa station?,7 July 1919,465,TEMPORAL,True
 When was the first opening of the Cheltenham Spa station?,30 March 1908,465,TEMPORAL,True
 How many year before the station closed for the last time was the picture taken?,7,465,COUNT,True
 How long after originally opening as  Cheltenham Malvern Road was it renamed Cheltenham Spa Malvern Road?,17 years,465,TEMPORAL,True
@@ -642,7 +642,7 @@ How many years ago did Timo Glock last race in Formula One World Championship ca
 What was the age when Timo Glock participated in Formula BMW 2001?,Age of 19,523,AGE,True
 How many times did Timo Glock was best finish in DTM career from 2013?,"2 Times (2018, 2020)",523,TEMPORAL,False
 How many years were between Glock's best finish in his  DTM career and his first best finish in his Champ Car career?,13,523,COUNT,True
-How old was Glock for his last entry in the Formula One World Championship?,30,523,AGE,False
+How old was Glock for his last entry in the Formula One World Championship?,30,523,AGE,True
 What other series did Timo Glock race in the same year a his first entry in his   Formula One World Championship career?,Porsche Supercup,523,UNKNOWN,True
 How many different DTM and Formula One teams was Timo Glock associated with?,8,523,COUNT,False
 How many years after Dennis Erickson's first coaching job did he become head coach for the Salt Lake Stallions?,50,540,COUNT,True
@@ -762,7 +762,7 @@ What was the name of Yale University in 1701?,Collegiate School,611,UNKNOWN,Fals
 How many years has Yale University been in existance?,321 years,611,TEMPORAL,True
 Can more people attend basketball games or concerts at the Carrier Dome?,concerts,621,UNKNOWN,False
 How many years passed between the ground breaking and the opening of the Carrier Dome?,2,621,COUNT,True
-In what decade was the capacity of the Carrier Dome the greatest?,80s,621,UNKNOWN,False
+In what decade was the capacity of the Carrier Dome the greatest?,80s,621,UNKNOWN,True
 How many more undergraduates than postgraduates does Jacobs University Bremen have?,898,624,COUNT,False
 How many years ago this Jacobs University Bremen Established?,21 years ago,624,TEMPORAL,True
 "Which is greater, the amount of Jacobs University Bremen's postgraduates	or doctoral students?",doctoral students,624,UNKNOWN,False
@@ -983,7 +983,7 @@ How many years did Birmingham–Jefferson Convention Complex was functional befo
 How long after the Birmingham–Jefferson Convention Complex was opened was it first renovated?,37 years,751,TEMPORAL,True
 When was the first renovation of the Birmingham–Jefferson Convention Complex?,2009,751,TEMPORAL,True
 How many years longer was the second renovation than the first of the Birmingham–Jefferson Convention Complex?,2,751,COUNT,True
-What was the first date someone could enter the Birmingham–Jefferson Convention Complex?,1972,751,UNKNOWN,False
+What was the first date someone could enter the Birmingham–Jefferson Convention Complex?,1972,751,UNKNOWN,True
 How long after Miloš Obrenović 's reign as Grand Vožd of Serbia ended did his second reign as Prince of Serbia begin?,41 years,765,TEMPORAL,True
 How many years elapsed between reigns of Prince of Serbia for Miloš Obrenović I?,19 years,765,TEMPORAL,True
 How many years was Miloš Obrenović I reign in which Karađorđe was his successor last?,2 years,765,TEMPORAL,True
@@ -1154,7 +1154,7 @@ How many days before the general election of Vermont General Assembly was taken 
 How many Republican in the Vermont General Assembly in 2022?,53,936,COUNT,False
 How many years after the last Vermont General Assembly general election will the next one take place?,two,936,COUNT,True
 How many years after Anthony Pollina became Senate Progressive Leader did Randy Brock become Senate Minority Leader?,10,936,COUNT,True
-How much length of this movie?,It might be 62:12.,942,TEMPORAL,False
+How much length of this movie?,It might be 62:12.,942,TEMPORAL,True
 What was the name of the album that came out in 2001?,Break the Cycle,942,UNKNOWN,False
 Which year can released the movie zoe jane?,"april 5,2004",942,TEMPORAL,True
 "How many months before ""Price to Play"" was  ""How About You"" released?",8 months,942,TEMPORAL,True
@@ -1279,7 +1279,7 @@ Which places are affected of 2020 Aegean Sea earthquake?,"Turkey, Greece",1047,U
 "Why 15,000 people got homeless?",Tsunami,1047,UNKNOWN,False
 "When the Tsunami type is Normal then what is the Max, intensity?",VIII (Severe),1047,UNKNOWN,True
 Where did the tsunami hit 2020?,"On 30 October 2020, a strong normal-faulting earthquake struck Samos Island in Greece and İzmir Province in Turkey, both in the eastern Aegean Sea. The earthquake generated a tsunami that hit the coasts of Samos Island, Greece and İzmir, Turkey.",1047,TEMPORAL,False
-How much  2020 aegean sea earthquake duriation ?,16 seconds,1047,UNKNOWN,False
+How much  2020 aegean sea earthquake duriation ?,16 seconds,1047,UNKNOWN,True
 How many years after the Better Day World Tour was the next tour?,3,1054,COUNT,True
 When was the last show on the Better Day World Tour?,"December 1, 2011",1054,TEMPORAL,True
 When was the first day you could catch a show on the Better Day World Tour?,"July 17, 2011",1054,TEMPORAL,True
@@ -1299,7 +1299,7 @@ How long after the beginning of the dissolution of the Soviet Union did Chechnya
 What is the total number of years that the Space Shuttle program lasted?,39,1062,COUNT,True
 How long did the Space Shuttle program run?,39 years,1062,TEMPORAL,True
 How many years after the Space Shuttle program began did it have its first flight?,5,1062,COUNT,True
-What was the last date that the Space Shuttle program made its flight?,"July 21, 2011",1062,TEMPORAL,False
+What was the last date that the Space Shuttle program made its flight?,"July 21, 2011",1062,TEMPORAL,True
 What year did the Space Shuttle program make its first flight?,1977,1062,TEMPORAL,True
 What positions did Joe Biden hold in 2008?,"The United States Senator from Delaware, Chair of the International Narcotics Control Caucus, Chair of Senate Foreign Relations Committee",1062,UNKNOWN,False
 At what age does Joe Biden join the democratic political party?,27,1062,AGE,True
@@ -1338,7 +1338,7 @@ What year did 3 a.m. Eternal become released on a live version?,1991,1071,TEMPOR
 How many years before Money Don't Matter 2 Night was Diamonds and Pearls released?,1,1075,COUNT,True
 What song was released in the UK in the same year as Money Don't Matter 2 Night?,Thunder,1075,UNKNOWN,True
 What song was released in US in the same year as Money Don't Matter 2 Night?,Sexy MF,1075,UNKNOWN,True
-What is the edited  length of the album?,4:12 min,1075,TEMPORAL,False
+What is the edited  length of the album?,4:12 min,1075,TEMPORAL,True
 In which studio the album got recorded?,Warner Pioneer Studios,1075,UNKNOWN,False
 Which year released in Money Don't Matter 2 Night?,1992,1075,TEMPORAL,True
 how many editors work for 8 Mile?,2,1077,COUNT,False
@@ -1347,7 +1347,7 @@ What was the net profit of movie?,200.9 million,1077,UNKNOWN,False
 How many producers did the movie have?,3,1077,COUNT,False
 What year did the movie 8 mile release?,2002,1077,TEMPORAL,True
 How many years ago was this movie released?,20 years,1077,TEMPORAL,True
-What is the running time for the film 8 Mile?,110 minutes,1077,TEMPORAL,False
+What is the running time for the film 8 Mile?,110 minutes,1077,TEMPORAL,True
 What year was 8 Mile released?,2002,1077,TEMPORAL,True
 How many minutes did 8 Mile run?,110 minutes,1077,TEMPORAL,False
 "What happened to 8 Mile on December 8, 2002?",It was released.,1077,UNKNOWN,False
@@ -1358,7 +1358,7 @@ When was the the 49th Parallel released in the US?,"April 15, 1942",1078,TEMPORA
 How many months after the UK nationwide release was the US nationwide release?,5,1078,COUNT,True
 How much of a profit did 49th Parallel make off of British profits alone?,"118,000",1078,UNKNOWN,False
 How many months after the New York City premiere was 49th Parallel released to the rest of the country?,1,1078,COUNT,True
-What is the running time of movie 49th Parallel?,123 minutes,1078,TEMPORAL,False
+What is the running time of movie 49th Parallel?,123 minutes,1078,TEMPORAL,True
 How much shorter is an Access Hollywood episode on the weekends vs the weekdays?,22,1085,UNKNOWN,False
 How many years was Access Hollywood known as Access?,2 years,1085,TEMPORAL,True
 How many years was Robert K. Silverstein the producer for Access Hollywood?,10,1085,COUNT,True
@@ -1502,11 +1502,11 @@ How many years after their first appearance in the World Cup did Argentina win a
 When was the first edition of Arkham Horror: The Card Game released?,2016,1161,TEMPORAL,True
 When was the first time that you could play Arkham Horror: The Card Game?,2016,1161,TEMPORAL,True
 How long ago was the first edition of Arkham Horror: The Card Game released?,6 years,1161,TEMPORAL,True
-What is the expected playing time range difference?,An hour,1161,TEMPORAL,False
+What is the expected playing time range difference?,An hour,1161,TEMPORAL,True
 How many quarterly years has Arkham Horror been active?,21,1161,COUNT,True
 In how many languages does Arkham Horror come in?,11,1161,COUNT,False
 How many years ago did Arkham Horror: The Card Game was published?,6 years ago (2016),1161,TEMPORAL,True
-What was the maximum setup time required for Arkham Horror: The Card Game?,15 Minutes,1161,TEMPORAL,False
+What was the maximum setup time required for Arkham Horror: The Card Game?,15 Minutes,1161,TEMPORAL,True
 How many years was Atlantis in publication?,35 years,1163,TEMPORAL,True
 What year did Atlantis become published?,1984,1163,TEMPORAL,True
 When was the most recent edition of Atlantis released?,2019,1163,TEMPORAL,True
