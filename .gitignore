@@ -9,6 +9,7 @@ __pycache__
 # Environments
 .env
 .venv
+.env.leave
 
 # Misc
 wget-log
