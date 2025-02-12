@@ -102,7 +102,7 @@ How many years did Nate Archibald play professionally for?,14,83,COUNT,Is tempor
 When was the last time that Nate Archibald was an NBA All Star?,1982,83,TEMPORAL,Is temporal,1982
 How many years did Nate Archibald was active carreer since 1970?,14 Years,83,TEMPORAL,Is temporal,14 Years
 What was the age when Scottie Pippen won gold medal in 1996 Atlanta Olympic Games?,Age of 31,89,AGE,Is temporal,Age of 31
-How many years did Pippen play between his stints in Chicago?,Five,89,COUNT,Is temporal,Five
+How many years did Pippen play between his stints in Chicago?,5,89,COUNT,Is temporal,Five
 How old was Pippwn when he won his first Olympic gold?,26,89,AGE,Is temporal,26
 How long after Pippen entered the NBA draft did was he awarded NBA steals leader?,8 years,89,TEMPORAL,Is temporal,8 years
 How many years longer did Pippen play for the Chicago Bulls than for the Portland Trail Blazers?,8,89,COUNT,Is temporal,8
@@ -191,7 +191,7 @@ How many years ago did Casey Mears received the award of Coca-Cola 600 winner?,1
 How many years did Casey Mears participated in NASCAR Xfinity Series?,17 Years (2001-2017),264,TEMPORAL,Is temporal,17 Years (2001-2017)
 How many years did Casey Mears career last in the Champ Car series?,2 years,264,TEMPORAL,Is temporal,2 years
 What year did Casey Mears have his first Daytona 500 race?,2003,264,TEMPORAL,Is temporal,2003
-How many years did it take for Mears to win a NASCAR Cup Series race?,Four,264,COUNT,Is temporal,Four
+How many years did it take for Mears to win a NASCAR Cup Series race?,4,264,COUNT,Is temporal,Four
 How old was Cody Ware when he debut in the NASCAR Cup Series?,22 years old,265,TEMPORAL,Is temporal,22 years old
 How many years did Cody Ware race in the NASCAR Xfinity Cup Series?,7 years,265,TEMPORAL,Is temporal,7 years
 How many years ago did Cody Ware won Lamborghini Super Trofeo North America Rookie of the Year 2014?,8 Years ago,265,TEMPORAL,Is temporal,8 Years ago
@@ -212,7 +212,7 @@ When was the first time that Dawn McEwen made an appearance at the World Champio
 When was the first time that Dawn McEwen got a gold medal at the Scotties Tournament of Hearts?,2008,288,TEMPORAL,Is temporal,2008
 How old was Dawn McEwen when she won the gold at the 2014 Sochi Olympics?,34 years old,288,TEMPORAL,Is temporal,34 years old
 What year did Dawn McEwen make her first Olympic appearance?,2014,288,TEMPORAL,Is temporal,2014
-How many years did Dawn McEwen played for  Ontario from 2003?,Four Years,288,TEMPORAL,Is temporal,Four Years
+How many years did Dawn McEwen played for  Ontario from 2003?,4 Years,288,TEMPORAL,Is temporal,Four Years
 When did Emma Kathryn Miskew first win a medal in the World Curling Championships?,2013,291,TEMPORAL,Is temporal,2013
 What was the age when Emma Miskew was appeared in 2018 Olympic Games?,Age of 29,291,AGE,Is temporal,Age of 29
 How many years are between Miskew's gold medal at the Canada Winter Games and her gold medal at the Canadian Olympic Curling Trials?,10,291,COUNT,Is temporal,10
@@ -262,7 +262,7 @@ How many years has Nicki Minaj been active in her career?,18 years,347,TEMPORAL,
 How old was Minaj when her career began?,22,347,AGE,Is temporal,22
 How long after Minaj's career began did she marry Kenneth Petty?,15 years,347,TEMPORAL,Is temporal,15 years
 How old was Nicki Minaj when she ended her partnership with Safaree Samuels?,32,347,AGE,Is temporal,32
-How many years between Nicki Minaj's relationship between Safaree Samuels and Meek Mill?,One year.,347,TEMPORAL,Is temporal,One year.
+How many years between Nicki Minaj's relationship between Safaree Samuels and Meek Mill?,1 year.,347,TEMPORAL,Is temporal,One year.
 How old was Nicki Minaj when she got married?,36,347,AGE,Is temporal,36
 When did Nicki Minaj break up with her first partner?,2014,347,TEMPORAL,Is temporal,2014
 How much longer did Minaj's relationship with Safaree Samuels last than with Meek Mill?,12 years,347,TEMPORAL,Is temporal,12 years
@@ -445,7 +445,7 @@ What was the age when Sead Hasanefendić was worked as manager for GWD Minden in
 How many years did Sead Hasanefendić was worked as manager for Switzerland team from 1980?,6 Years,503,TEMPORAL,Is temporal,6 Years
 How old was Hasanefendić when he managed his first team?,31,503,AGE,Is temporal,31
 How longer after Hasanefendić stop managing RK Metaloplastika did he begin managing his current team?,38 years,503,TEMPORAL,Is temporal,38 years
-How many years did Žarko Marković was played for Montenegro?,Six years (2006-2012),504,TEMPORAL,Is temporal,Six years (2006-2012)
+How many years did Žarko Marković was played for Montenegro?,6 years (2006-2012),504,TEMPORAL,Is temporal,Six years (2006-2012)
 How many years did Žarko Marković play for Montegengro?,6,504,COUNT,Is temporal,6
 For how many years did Žarko Marković play for Montenegro?,7,504,COUNT,Is temporal,7
 Which year did Novak Djokovic won the hat-tricks title of Australian Open?,2011-2013 and 2019-2021,509,TEMPORAL,Is temporal,2011-2013 and 2019-2021
@@ -785,7 +785,7 @@ When did Alessandro Riguccini's martial arts career start?,1999,840,TEMPORAL,Is 
 How long after becoming active did Riguccini join Zanfer Promotions?,13 years,840,TEMPORAL,Is temporal,13 years
 How old was Riguccini when he became active as a fighter?,11,840,AGE,Is temporal,11
 What year was Bustamantel's most decorated?,1998,849,TEMPORAL,Is temporal,1998
-How many years has it been since Bustamante has fought?,Ten,849,COUNT,Is temporal,Ten
+How many years has it been since Bustamante has fought?,10,849,COUNT,Is temporal,Ten
 How many years was Murilo Bustamante active in the MMA?,21,849,COUNT,Is temporal,21
 What was Murilo Bustamante's age when he attended the Brazilian National Championship for the first time?,30,849,UNKNOWN,Is temporal,30
 How old was Murilo Bustamante when he won the gold medal in the 1999 Brazilian National Championship?,33 years old,849,TEMPORAL,Is temporal,33 years old
@@ -1034,7 +1034,7 @@ How many months separated the introduction of the X-15 and it's first flight?,3,
 How many months after the first flight was was the introduction of the X-15?,3,1132,COUNT,Is temporal,3
 How many years are between the first flight of the X-15 and when it was retired?,9,1132,COUNT,Is temporal,9
 What year did the X-15 take its first flight?,1959,1132,TEMPORAL,Is temporal,1959
-How many years did Coordination Center for Ethnic Germans was worked from 1937?,Eight Years,1139,TEMPORAL,Is temporal,Eight Years
+How many years did Coordination Center for Ethnic Germans was worked from 1937?,8 Years,1139,TEMPORAL,Is temporal,Eight Years
 How many years was Reichsführer-SSHeinrich Himmler the responsible minister for the Coordination Center for Ethnic Germans?,6 years,1139,TEMPORAL,Is temporal,6 years
 How many years did the Coordination Center for Ethnic Germans remain in existance?,8 years,1139,TEMPORAL,Is temporal,8 years
 Which year formed in Coordination Center for Ethnic Germans?,1937,1139,TEMPORAL,Is temporal,1937
