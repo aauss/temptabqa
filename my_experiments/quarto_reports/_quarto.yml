@@ -1,10 +1,11 @@
 project:
   output-dir: _output
 
-toc: true
-code-fold: true
-number-sections: true
+
 
 format:
   html:
     code-overflow: wrap
+    toc: true
+    code-fold: true
+    number-sections: true
