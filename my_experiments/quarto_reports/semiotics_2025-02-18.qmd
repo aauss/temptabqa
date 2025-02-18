@@ -178,10 +178,10 @@ import pandas as pd
 head_raw = pd.read_csv("./../../data/maindata/qapairs/head-set/head-set.csv")
 
 head_temp_q = pd.read_csv(
-    "./../temp_error_analyis/label_temp_answers_head_dataset/labeled_cleaned_head_dataset.csv"
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/02_man_label_temp_q_head_data.json"
 )
 head_temp_q_year_a = pd.read_csv(
-    "./../temp_error_analyis/head_dataset_with_auto_year_time_unit.csv"
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv"
 ).query('answer_timeunit == "year"')
 
 
@@ -200,7 +200,7 @@ head_temp_q_year_a = pd.read_csv(
 import seaborn as sns
 import numpy as np
 
-df = pd.read_csv("./../temp_error_analyis/head_dataset_with_auto_year_time_unit.csv").query(
+df = pd.read_csv("./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv").query(
     "answer_timeunit == 'year'"
 )
 head_gpt_fs_w_reas = pd.read_csv(
@@ -428,6 +428,8 @@ abs_err = temp_err_df.abs_err
 - Mean rel. error, where error < 0: `{python} np.mean(rel_error[rel_error < 0]).round(2)` ± `{python} np.std(rel_error[rel_error < 0]).round(2)`
 
 ## Results
+
+<!-- I took the subset of this data to calculate its metrics using the [author's script](./../../models/predictions/prediction_analysis.py) -->
 
 Imagine TEA as an addition to reporting standard metrics
 
