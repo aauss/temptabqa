@@ -21,11 +21,14 @@ dependencies = [
     "evaluate>=0.4.3",
     "plotly>=6.0.0",
     "seaborn>=0.13.2",
+    "spacy>=3.8.4",
+    "en-core-web-trf",
 ]
 
 [project.optional-dependencies]
 gpu = [
     "bitsandbytes>=0.44.1 ; sys_platform == 'linux'",
+    "spacy[cuda12x]>=3.8.4 ; sys_platform == 'linux'",
 ]
 [tool.uv]
 dev-dependencies = [
@@ -36,6 +39,9 @@ dev-dependencies = [
     "nbformat>=4.2.0",
     "ruff",
 ]
+
+[tool.uv.sources]
+en-core-web-trf = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl" }
 
 [tool.ruff]
 line-length = 100
