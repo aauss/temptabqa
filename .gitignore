@@ -9,6 +9,7 @@ __pycache__
 # Environments
 .env
 .venv
+.env.leave
 
 # Misc
 wget-log
@@ -16,3 +17,6 @@ test.ipynb
 *.out
 machine.file*
 
+# Quarto
+*/quarto_reports/_output/*
+*/quarto_reports/iframe_figures/*

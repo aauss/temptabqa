@@ -1,0 +1,15 @@
+<View>
+  	<Header size="3">Question:</Header>
+    <Text name="question" value="$question" />
+  	<Header size="3">Answer:</Header>
+    <Text name="answer" value="$answer" />
+  	<Header size="3">Current label:</Header>
+    <Text name="is_temporal_input" value="$is_temporal" />
+
+	<Header value="Is the current label correct?"/>
+    <Choices name="is_temporal" toName="is_temporal_input" choice="single" required="false" showInLine="true">
+        <Choice value="true"/>
+        <Choice value="false"/>
+    </Choices>
+    
+</View>

@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "pandas==2.2.2",
     "tqdm",
-    "easyllm",
     "pyarrow==17.0.0",
     "transformers>=4.35.2",
     "torch>=2.5.1",
@@ -31,6 +30,7 @@ gpu = [
 [tool.uv]
 dev-dependencies = [
     "ipykernel",
+    "label-studio>=1.13.1",
     "mypy>=1.13.0",
     "nbclient>=0.10.2",
     "nbformat>=4.2.0",

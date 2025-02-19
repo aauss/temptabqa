@@ -7,7 +7,7 @@ In experiment 1, I copied the prompt from the author's Llama2.py script as found
 In the few shot settings, llama2 would reiterate the whole conversation with the examples given in the prompt. With a simple regex, I extracted the final answer searching for the last phrase starting with "answer:" and its variations and saved the result in FILENAME_modified.csv.
 
 ## Code to produce this result
-A python script is added in this folder to describe the way I did prompting to produce these results.
+A python script is added in this folder to describe the way I did prompting to produce these results. Note, you will need to adopt paths to re-run experiments
 
 ## Open questions
 - Why is the answer so long for the few shot experiments?

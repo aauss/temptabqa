@@ -1,0 +1,454 @@
+---
+title: "Beyond F1, Acc., and EM in temporal QA benchmarks"
+subtitle: "Ongoing work"
+author: "Auss Abbood"
+date: "2025-02-18"
+format: revealjs
+slide-number: true
+execute:
+  echo: false
+jupyter: python3
+---
+
+## Motivation
+
+```{python}
+def f1_score(reference_answer, predicted_answer):
+    reference_answer = str(reference_answer)
+    predicted_answer = str(predicted_answer)
+    reference_tokenized = set(reference_answer.lower().split())
+    predicted_tokenized = set(predicted_answer.lower().split())
+    intersection = reference_tokenized & predicted_tokenized
+    precision = len(intersection) / len(predicted_tokenized)
+    recall = len(intersection) / len(reference_tokenized)
+    if precision + recall == 0:
+        return 0
+    f1 = 2 * precision * recall / (precision + recall)
+    return f1
+
+
+f1_standard_qa = round(f1_score("Spirit of the Century", "3.0/Spirit of the Century"), 2)
+f1_temp_qa = round(f1_score("20 years", "21 years and 6 months"), 2)
+```
+
+Which F1 score do you expect for this predicted answer?
+
+- _Question_: What was the name of the 3rd Edition of Fate Core in 2006?
+- _Target_: Spirit of the Century
+- _Prediction_: 3.0/Spirit of the Century
+
+. . .
+
+- _F1_: `{python} f1_standard_qa`
+
+
+## Motivation
+
+Do you expect a similarly high F1 score for this prediction?
+
+- _Question_: How much longer was Miloš Obrenović 's first reign as Prince of Serbia and his reign as Grand Vožd of Serbia?
+- _Target_: 20 years
+- _Prediction_: 21 years and 6 months
+
+. . .
+
+- _F1_: `{python} f1_temp_qa`
+
+
+## Research question
+
+Are traditional token-level, binary metrics like EM, Acc., or F1 enough to evaluate LLMs on temporal QA benchmarks? 
+
+Can a temporal error analysis (TEA) on temporal QA benchmarks help us understand LLM's reasoning capabilities better?
+
+## Why temporal QA
+
+Many downstream tasks require temporal reasoning. E.g., time plays a key role in epidemiology. 
+
+How can we trust LLMs if we can't articulate how precise they are measured in units of time?
+
+## What makes QA benchmarks temporal?
+
+Excluding specifics, QA becomes temporal if:
+
+- Asking for a temporal expression
+- Temporal signals in questions like "before" or "during" (see Allen's interval algebra)
+
+---
+
+Also part of temporal QA benchmarks but out of scope in this work:
+
+- temporal causality
+- temporal common sense reasoning
+- temporal NLI  
+
+---
+
+## What is TEA supposed to do?
+
+```{python}
+target = 20 * 12
+predicted = 21 * 12 + 6
+err = predicted - target
+rel_err = round(err / target * 100, 2)
+```
+
+Assume the example from the beginning where the target was "20 years" and the prediction "21 years and 6 months". 
+
+. . .
+
+Additional to the F1 of `{python} f1_temp_qa`, TEA would report a prediction error of `{python} err` months, which is a relative error of `{python} rel_err`%.
+
+---
+
+::: {.fragment .fade-in}
+::: {.fragment .semi-fade-out}
+Note, we can apply TEA only if the expected answer is temporal.
+
+"What was the most recent award won by Alexandra Boltasseva?"
+
+TEA not applicable. Question is temporal but not the answer
+:::
+:::
+
+::: {.fragment .fade-in}
+"When did Alexandra Boltasseva win become Fellow of the Materials Research Society?"
+
+TEA applicable. Question and answer are temporal
+:::
+
+---
+
+## Challenges in applying TEA
+
+- Questions expecting a temporal answer need to be labeled/identified
+- Answers need to be normalised and cast to numeric data type to allow comparison
+- Not all problems have a clear answer, e.g., how to compare time/date ranges (2002-2004) or approximations (almost 5 years)
+
+## Evaluation in temporal benchmarks
+
+Found 20 temporal QA benchmarks with F1 and similar but without TEA: 
+
+TempQuestions, TimeQA, TEQUILA, TimeQuestions, SituatedQA, TempLAMA, StreamingQA, TempTabQA, BIG-Bench, MenatQA, TempUN, TimeBench, TIQ, CoTempQA, Timo, Complex-TR, UnSeenTimeQA, TRAM, TGQA, ChronoSense
+
+::: {.fragment}
+Fun fact, most QA benchmarks use scripts to normalise outputs for evaluation.
+:::
+
+## Evaluation in temporal benchmarks
+
+Temporal QA benchmarks with ansatz of TEA:
+
+- TempReason (on subset asking answers in numbers of years)
+- Test of Time (additional eval. on duration question. Found that most common error is one day)
+
+## Experiments
+
+I ran first evaluations using TEA on the benchmark TempTabQA (temporal table QA).
+
+TempTabQA consists of mostly temporal questions where the context given are semi-structured infobox tables from Wikipedia, often including temporal info.
+
+## Experiments
+
+To give an overview, I:
+
+- filtered the dataset for temporal answers
+- evaluated model responses on normalised answers
+- measured error as unit of time 
+
+## Mode selection
+
+- The authors of TempTabQA tested several models and prompting techniques. The best performing was GPT-4 with few shots and CoT.
+- To assess TEA's impact in an optimal setting, I picked this models predictions for my analyses. 
+
+
+## Data selection 
+
+- TempTabQA consists of a head and tail dataset, splitting the data into popular and less popular Wiki. infoboxes. 
+- Most models performed better on the head dataset. Therefore, I selected it to investigate the advantage of TEA in an optimal setting.
+- TempTabQA assumes it is the year 2022.
+
+## Subset selection
+
+```{python}
+# | echo: false
+
+import pandas as pd
+
+head_raw = pd.read_csv("./../../data/maindata/qapairs/head-set/head-set.csv")
+
+head_temp_q = pd.read_csv(
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/02_man_label_temp_q_head_data.json"
+)
+head_temp_q_year_a = pd.read_csv(
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv"
+).query('answer_timeunit == "year"')
+
+
+```
+
+- The head data set consist of `{python} head_raw.shape[0]` QA-pairs.
+- After filtering for temporal answers (semi-manual), `{python} head_temp_q.shape[0]` QA-pairs were left.
+- The simplest TEA was on answers expecting a single "year" time unit".  `{python} head_temp_q_year_a.shape[0]` QA-pairs fulfilled this criterion.
+- After de-duplication and merging with the best model's responses, the final dataset contains 795 QA-pairs.
+
+
+## Results
+
+```{python}
+# | echo: false
+import seaborn as sns
+import numpy as np
+
+df = pd.read_csv("./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv").query(
+    "answer_timeunit == 'year'"
+)
+head_gpt_fs_w_reas = pd.read_csv(
+    "./../../models/predictions/gpt4/fewshot_with_reasoning/indomain_eval_gpt_4_few_shot_with_reasoning_single.csv"
+)
+
+temp_err_df = (
+    df.merge(
+        head_gpt_fs_w_reas,
+        left_on=[
+            "question",
+            "answer_old",
+        ],  # answer_old is unmodified, i.e., contains digits still as words ("three" instead of "3")
+        right_on=["question", "actual_answer"],
+        how="inner",
+    )
+    .drop(columns=["table", "answer_timeunit", "is_temporal", "answer_old", "actual_answer"])
+    .assign(
+        predicted_answer_wo_reas=lambda x: x["predicted_answer"]
+        .str.split("&&")  # Seperate answer from reasoning
+        .apply(lambda y: y[0]),
+        answer_digits=lambda x: x["answer"].str.findall("\d+"),
+        predicted_answer_digits=lambda x: x["predicted_answer_wo_reas"].str.findall("\d+"),
+    )
+    .query("answer_digits.str.len()==1 and predicted_answer_digits.str.len()==1")
+    .assign(
+        answer_digits=lambda x: x["answer_digits"].apply(lambda y: y[0]).astype(int),
+        predicted_answer_digits=lambda x: x["predicted_answer_digits"]
+        .apply(lambda y: y[0])
+        .astype(int),
+        err=lambda x: x["predicted_answer_digits"] - x["answer_digits"],
+        rel_err=lambda x: (x["predicted_answer_digits"] - x["answer_digits"]) / x["answer_digits"],
+        abs_err=lambda x: (x["predicted_answer_digits"] - x["answer_digits"]).abs(),
+        abs_per_err=lambda x: (
+            (x["predicted_answer_digits"] - x["answer_digits"]).abs() / x["answer_digits"]
+        )
+        * 100,
+        log_err=lambda x: np.log(x["predicted_answer_digits"] + 1) - np.log(x["answer_digits"] + 1),
+    )
+)
+
+ax = sns.boxenplot(
+    temp_err_df,
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df, y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Results
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df,
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df, y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Some outliers
+
+```{python}
+from IPython.core.display import display, HTML
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[0]].style.set_table_attributes("style='font-size:25px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+## Some outliers
+
+```{python}
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[2]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+
+## Some outliers
+
+```{python}
+df = temp_err_df.query("err.abs() > 100 and err.abs() < 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[0]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+## Results without outliers
+
+The plot is again easier to inspect after removing answers with |error| > 100
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<100"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Results without outliers
+
+The plot is again easier to inspect after removing answers with |error| > 100
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<100"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Results
+
+Most errors hover around 0. How many are at exactly 0?
+
+```{python}
+ax = sns.countplot(x=np.where(temp_err_df["err"] == 0, "Error of 0", "|Error| > 0"))
+```
+
+## Results
+
+Is GPT-4 over- or undershooting?
+
+```{python}
+ax = sns.countplot(
+    x=np.where(temp_err_df.query("err!=0")["err"] > 0, "Error > 0 ", "Error < 0")
+)
+```
+
+## Results
+
+Most common errors
+
+```{python}
+temp_err_df.rename(columns={"err": "Error in years"}).loc[:, "Error in years"].value_counts().iloc[
+    :5
+].to_frame()
+```
+
+## Results
+
+Most common errors, as absolute values
+
+```{python}
+temp_err_df.rename(columns={"abs_err": "|Error| in years"}).loc[:, "|Error| in years"].value_counts().iloc[
+    :5
+].to_frame()
+```
+
+## Results
+
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs() < 100"),
+    y="rel_err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100"), y="rel_err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Rel. error")
+ax.set_title("Boxedplot of Relative Error");
+```
+
+## Results
+
+```{python}
+rel_error = temp_err_df.rel_err
+err = temp_err_df.err
+abs_err = temp_err_df.abs_err
+```
+
+
+- Mean error in years: `{python} np.mean(err).round(2)` ± `{python} np.std(err).round(2)`
+- Mean |error| in years: `{python} np.mean(abs_err).round(2)` ± `{python} np.std(abs_err).round(2)`
+- Mean rel. error: `{python} np.mean(rel_error).round(2)` ± `{python} np.std(rel_error).round(2)`
+- Mean rel. error, where error > 0: `{python} np.mean(rel_error[rel_error > 0]).round(2)` ± `{python} np.std(rel_error[rel_error > 0]).round(2)`
+- Mean rel. error, where error < 0: `{python} np.mean(rel_error[rel_error < 0]).round(2)` ± `{python} np.std(rel_error[rel_error < 0]).round(2)`
+
+## Results
+
+<!-- I took the subset of this data to calculate its metrics using the [author's script](./../../models/predictions/prediction_analysis.py) -->
+
+Imagine TEA as an addition to reporting standard metrics
+
+| F1  | ROUGE1 | ROUGE2 | METEOR | Exact Match |
+| --- | ------ | ------ | ------ | ----------- |
+|72.30| 70.513 | 72.34  | 72.33  | 52.06       |
+
+
+## Current thoughts
+
+- Why do most incorrect answers have an errors ± 1?
+    - Underspecified month?
+    - Digit representation?
+- How do I explore patterns in errors faster?
+    - Use large model to summarise errors based on question, expected and predicted answer, and reasoning?
+    - Clustering? Usually not happy with results though
+
+## Outlook
+
+- Repeat experiment with more models from the paper and observe if ranking changes
+- Assess whether LLM's can help with normalisation, identification of temporal questions, or evaluation entirely including reasoning steps
+- Do we need meta data in temporal QA benchmarks for better TEA, e.g., describe which time unit is expected per answer for better easier TEA?

@@ -1,0 +1,299 @@
+---
+title: "Temporal evaluation of TempTabQA"
+jupyter: python3
+---
+
+## Overview of this analysis
+
+This is an experiment to measure the temporal error in a QA dataset. I am using the temporal table QA benchmark, _TempTabQA_ since I am already familiar with it. My current working definition of a temporal error is to measure the difference between the expected and actual answer as a measure of time. To evaluate an temporal error, I need to select QA-pairs in the dataset that require a temporal answer.
+
+## Data selection strategy
+Expected answers in _TempTabQA_ are not exclusively temporal. They include counts, entities such as persons and organizations, or ordinals. While based on the literature I reviewed, a problem may very well be temporal even if the expected answer is not, I can't conduct a temporal error analysis on these QA-pairs. Therefore, I need to filter my data for expected temporal answers.
+
+Other filter criteria are picking the best performing model on the head dataset since I want to observe the benefit of temporal error analysis in the optimal case (for LLMs). This means, I will exclude QA-pairs where the model made the right prediction.
+
+In summary, I evaluate temporal errors on:
+
+- QA-pairs that expect a temporal answer;
+- the head dataset, which had better results;
+- results by GPT-4, which performed best;
+- QA-pairs where the model gave the wrong answers:
+
+
+```{python}
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.io as pio
+pio.renderers.default = 'iframe'
+```
+
+```{python}
+data_analysis_df = pd.read_csv("../../data/maindata/qapairs/head-set/head-set_analysis.csv").drop(
+    columns=["Unnamed: 0", "Unnamed: 0.1"]
+).loc[:, ["question", "answer", "answer_type", "table_id"]]
+print(f"The head-dataset contains {data_analysis_df.shape[0]} questions.")
+```
+
+## Remove non temporal QA-pairs
+
+I remove several categories of non-temporal questions. To double check, I print the __unique__ answers to verify that the expected answers are indeed not temporal.
+
+### Remove questions for persons and organizations
+If we look at questions asking for "Who" or "Which", we probably will not expect temporal answers. The following output are the unique answers for questions asking for a person or organization.
+```{python}
+data_analysis_df.query("answer_type=='PERSON'").answer.unique()
+```
+
+```{python}
+data_analysis_df.query("answer_type=='ORGANIZATION'").answer.unique()
+```
+
+### Remove questions for places
+I repeat the same exclusion for questions asking for "Where", a city, country, etc.
+```{python}
+# data_analysis_df.query("answer_type=='PLACE'").answer.unique()
+```
+
+### Remove boolean, percentage, money, or product questions
+
+```{python}
+data_analysis_df.query("answer_type=='YES/NO'").answer.unique()
+```
+
+```{python}
+data_analysis_df.query("answer_type=='PERCENTAGE'").answer.unique()
+```
+
+```{python}
+data_analysis_df.query("answer_type=='MONEY'").answer.unique()
+```
+
+```{python}
+data_analysis_df.query("answer_type=='PRODUCT'").answer.unique()
+```
+
+### Remove questions asking for ordinals
+
+Answers that have ordinal-suffixes or ask for a rank or place. Double check questions that are ordinal but don't have ordinal-suffix in answer.
+```{python}
+print(data_analysis_df.query("answer_type=='ORDINAL'").answer.unique())
+data_analysis_df.query("answer_type=='ORDINAL' and answer.isin(['11', '14', '1'])")
+```
+
+### Result
+
+```{python}
+qa_pairs_left = data_analysis_df.query(
+    "~answer_type.isin(['YES/NO', 'ORGANIZATION', 'PLACE', 'PERSON', 'MONEY', 'PERCENTAGE', 'PRODUCT', 'ORDINAL'])"
+)
+print(f"After removing questions, we are left with {qa_pairs_left.shape[0]} questions") 
+```
+
+## Remove exact matches
+
+I take the results of GPT-4 in the few-shot setting on the head-data set. After selecting the QA-pairs left after the first round of removal, I remove more QA-pairs where GPT4's answer is an exact match with the expected answer.
+
+### Merging dataset and GPT-4 response's
+```{python}
+gpt4 = pd.read_csv(
+    "../../models/predictions/gpt4/fewshot_without_reasoning/indomain_eval_gpt_4_few_shot_single.csv"
+)
+gpt4 = gpt4.merge(qa_pairs_left, on="question", how="outer")
+not_answered_by_gpt4 = gpt4.query("actual_answer.isna()")
+answered_but_not_in_dataset = gpt4.query("answer.isna()")
+
+print(
+    f"There are {not_answered_by_gpt4.shape[0]} questions in the head-dataset that are not answered by GPT-4"
+)
+print(
+    f"There are {answered_but_not_in_dataset.shape[0]} questions answered by GPT-4 that are not in the head-dataset"
+)
+# Remove QA-pairs where dataset and model response don't overlap
+# Drop redundant duplicates and all duplicates that are not redundant by question
+gpt4 = (
+    gpt4.dropna().drop_duplicates(["question", "predicted_answer"]).drop_duplicates("question")
+)
+
+
+print(f"After also dropping duplicates, we are left {gpt4.shape[0]} QA-pairs.")
+```
+
+### Remove exact matches
+
+I measured exact matches after converting all letters to lower case.
+```{python}
+gpt4_no_em = gpt4.query("predicted_answer.str.lower() != actual_answer.str.lower()")
+print(f"Out of {gpt4.shape[0]} QA-pairs, {gpt4.shape[0] - gpt4_no_em.shape[0]} are exact matches. We are then left with {gpt4_no_em.shape[0]} QA-pairs")
+```
+
+### Remove where extracted digits are an exact match
+```{python}
+gpt4_no_em = gpt4_no_em.assign(
+    predicted_nums_only=lambda x: x["predicted_answer"].str.findall("\d+"),
+    actual_nums_only=lambda x: x["actual_answer"].str.findall("\d+"),
+)
+```
+
+```{python}
+gpt4_no_dm = gpt4_no_em.query(
+    "predicted_nums_only != actual_nums_only and actual_nums_only"
+)
+
+print(
+        f"Of the QA pairs with no exact match, there are answers {gpt4_no_em.shape[0] - gpt4_no_dm.shape[0]}\nthat match the expected answer if we only compare digits.\nThis leaves us with {gpt4_no_dm.shape[0]} QA pairs that are not an exact match\nnor are they matching over digits only."
+)
+```
+
+```{python}
+#| output: false
+# Double check that matches make sense
+gpt4_no_em.query(
+    "predicted_nums_only == actual_nums_only and actual_nums_only"
+).query("predicted_nums_only.str.len() >1")
+```
+
+## Identify temporal questions
+
+I used string matching to identify temporal questions, e.g., looking for the word "year", "month", or "day" in the answer or looking for "when", "how many years|days|months" in the question. I added a few more rules after manual data inspection.
+
+```{python}
+non_temp = gpt4_no_dm.query(
+    "~(actual_answer.str.lower().str.contains('year') "
+    "or actual_answer.str.lower().str.contains('month') "
+    "or actual_answer.str.lower().str.contains('day') "
+    "or question.str.lower().str.contains('when') "
+    "or question.str.lower().str.contains('year') "
+    "or question.str.lower().str.contains('what age')"
+    "or question.str.lower().str.contains('how long')"
+    "or question.str.lower().str.contains('how many days')"
+    "or question.str.lower().str.contains('how many full months')"
+    "or question.str.lower().str.contains('how many months')"
+    "or question.str.lower().str.contains('what is the date')"
+    "or question.str.lower().str.contains('what was the opening date')" 
+    "or question.str.lower().str.contains('what was the release date')"  
+    "or question.str.lower().str.contains('what was the time span')"  
+    "or question.str.lower().str.contains('if mars express begins'))"
+)
+
+gtp4_temp_nm = gpt4_no_dm.query(
+    "actual_answer.str.lower().str.contains('year') "
+    "or actual_answer.str.lower().str.contains('month') "
+    "or actual_answer.str.lower().str.contains('day') "
+    "or question.str.lower().str.contains('when') "
+    "or question.str.lower().str.contains('year') "
+    "or question.str.lower().str.contains('what age')"
+    "or question.str.lower().str.contains('how long')"
+    "or question.str.lower().str.contains('how many days')"
+    "or question.str.lower().str.contains('how many full months')"
+    "or question.str.lower().str.contains('how many months')"
+    "or question.str.lower().str.contains('what is the date')"
+    "or question.str.lower().str.contains('what was the opening date')" 
+    "or question.str.lower().str.contains('what was the release date')"  
+    "or question.str.lower().str.contains('what was the time span')"  
+    "or question.str.lower().str.contains('if mars express begins')"
+)
+print(f"If we only keep QA pairs where the expected answer is temporal\nor the question ask for some time measure, we are left with  {gtp4_temp_nm.shape[0]} QA paris.")
+# df_no_match_not_temp.to_csv("head_dataset_no_em_not_temp.csv", index=False)
+```
+
+### Parallel: Automated classification of expected temporal answer
+
+Since manual identification whether an expected answer is temporal, i.e., is a date, time, or some duration, I started experimenting with DeepSeek-R1-Distill-Qwen-32B. After some experiments on a small slice of the dataset, I got first useful results. I have only manually inspected the results so far but they look good. Possibly, I can take the manually extracted temporal-answer-subset of TempTabQA to evaluate DeepSeek-R1-Distill-Qwen-32B's ability to the classification for me
+
+## Calculate temporal error
+
+Since the extraction of the temporal-answer-subset of TempTabQA is still ongoing, I have not yet progressed far in evaluating temporal errors.
+
+A key challenge is the normalization of the predicted and expected answer. Especially, if answer contain a mix of information like "39 Years ago (1983)" or if the questions ask for a number of years but the LLM is more precise, e.g., "1 year and 2 months".
+
+### Number of years in actual and predicted answer
+
+A subset of the data can already be evaluated without further processing. Namely, when the expected and predicted answer for one QA-pair contains the word "year" and the lower case string answers match without digits, e.g., "~~4~~ years ago" == "~~4~~ years ago". In this case, I can calculate the error as a measure of years when extracting the digits.
+
+
+```{python}
+gtp4_year_answers = gtp4_temp_nm.query(
+    "predicted_answer.str.replace(r'\d+', '', regex=True).str.strip().str.lower() == actual_answer.str.replace(r'\d+', '', regex=True).str.strip().str.lower() and actual_answer.str.contains('year')"
+).assign(
+    predicted_nums_only_flat=lambda x: x["predicted_nums_only"].apply(lambda y: y[0]).astype(int),
+    actual_nums_only_flat=lambda x: x["actual_nums_only"].apply(lambda y: y[0]).astype(int),
+    error_in_years=lambda x: x["predicted_nums_only_flat"] - x["actual_nums_only_flat"],
+    rel_error=lambda x: round((x["error_in_years"] / x["actual_nums_only_flat"]) , 2)
+)
+
+print(f"There are {gtp4_year_answers.shape[0]} QA-paris where expected and actual answer\nhave the same format for a measure of years.")
+```
+
+
+__Temporal error measured in number of years__
+```{python}
+fig = px.violin(gtp4_year_answers, y="error_in_years")
+fig.update_layout(width=500)
+fig.show()
+```
+
+```{python}
+fig = px.histogram(gtp4_year_answers, nbins=50, x="error_in_years")
+fig.update_layout(width=500)
+fig.show()
+```
+
+
+__Relative error from actual answer__
+```{python}
+fig = px.violin(gtp4_year_answers, y="rel_error")
+fig.update_layout(width=500)
+fig.show()
+```
+
+```{python}
+fig = px.histogram(gtp4_year_answers, nbins=50, x="rel_error")
+fig.update_layout(width=500)
+fig.show()
+```
+
+
+```{python}
+tmp = gtp4_temp_nm.query(
+    "predicted_answer.str.replace(r'\d+', '', regex=True).str.strip().str.lower() == actual_answer.str.replace(r'\d+', '', regex=True).str.strip().str.lower() and actual_answer.str.contains('year')"
+)
+```
+
+## Summary of subset creation
+
+
+```{python}
+fig = go.Figure(
+    data=[
+        go.Sankey(
+            node=dict(
+                label=[
+                    "Full in-domain dataset",  # 0
+                    "Pot. temporal",  # 1
+                    "Non-temporal",  # 2
+                    "Exact match",  # 3
+                    "Not exact match",  # 4
+                    "Mostly temp", # 5
+                    "Mostly not temp",  # 6
+                    "Evaluated",  # 7
+                    "Not evaluated"  # 8
+                ],
+                align="left",
+                color="blue",
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+            ),
+            link=dict(
+                source=[0, 0, 1, 1, 4, 4, 5, 5],
+                target=[1, 2, 3, 4, 5, 6, 7, 8],
+                value=[1567, 284, 511, 1041, 609, 432, 77, 532],
+            ),
+        )
+    ]
+)
+
+fig.update_layout(title_text="Subset selection", font_size=10, width=750)
+fig.show()
+```

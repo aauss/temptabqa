@@ -1,0 +1,11 @@
+project:
+  output-dir: _output
+
+
+
+format:
+  html:
+    code-overflow: wrap
+    toc: true
+    code-fold: true
+    number-sections: true

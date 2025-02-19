@@ -1,0 +1,405 @@
+---
+title: "Supervision"
+author: "Auss Abbood"
+date: "2025-02-14"
+format: revealjs
+slide-number: true
+execute:
+  echo: false
+jupyter: python3
+---
+
+## Overview
+
+- Changes in dataset preparation
+- Description of the dataset now
+- Current results & some examples 
+
+## Changes in dataset preparation
+
+- Before
+    - Took GPT-4's responses, left out exact matches and exact matches on digit basis
+    - Calculated error where \\d+ years? matched, ignoring cases
+    -> 77 QA-pairs
+- Now
+    - Focused on questions alone
+    - Identified questions asking for temporal answers first
+    - Then, identified questions asking for "year" temporal unit answer
+
+
+## Description of the dataset
+```{python}
+# | echo: false
+
+import pandas as pd
+
+head_data = pd.read_csv("./../../data/maindata/qapairs/head-set/head-set.csv")
+
+head_data_labeled = pd.read_csv(
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/02_man_label_temp_q_head_data.json"
+)
+head_year_answer = pd.read_csv(
+    "./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv"
+).query('answer_timeunit == "year"')
+
+
+print(f"Size of original head dataset: {head_data.shape[0]}\n")
+
+print(f"When keeping temporal answers only using automated and manual labeling, the dataset contains {head_data_labeled.shape[0]} QA-pairs\n")
+
+print(f"After filtering for questions asking a 'year' temporal unit, I am left with {head_year_answer.shape[0]} QA-pairs\n")
+
+print("795 of those are also covered by the best performing model (GPT-4 with FW + CoT) and expect a single string of digit.")
+```
+
+## Current results
+
+```{python}
+# | echo: false
+import seaborn as sns
+import numpy as np
+
+df = pd.read_csv("./../temp_error_analyis/label_temp_answers_head_dataset/data/notebook_output/03_label_answers_with_year_timeunit_head_data.csv").query(
+    "answer_timeunit == 'year'"
+)
+head_gpt_fs_w_reas = pd.read_csv(
+    "./../../models/predictions/gpt4/fewshot_with_reasoning/indomain_eval_gpt_4_few_shot_with_reasoning_single.csv"
+)
+
+temp_err_df = (
+    df.merge(
+        head_gpt_fs_w_reas,
+        left_on=[
+            "question",
+            "answer_old",
+        ],  # answer_old is unmodified, i.e., contains digits still as words ("three" instead of "3")
+        right_on=["question", "actual_answer"],
+        how="inner",
+    )
+    .drop(columns=["table", "answer_timeunit", "is_temporal", "answer_old", "actual_answer"])
+    .assign(
+        predicted_answer_wo_reas=lambda x: x["predicted_answer"]
+        .str.split("&&")  # Seperate answer from reasoning
+        .apply(lambda y: y[0]),
+        answer_digits=lambda x: x["answer"].str.findall("\d+"),
+        predicted_answer_digits=lambda x: x["predicted_answer_wo_reas"].str.findall("\d+"),
+    )
+    .query("answer_digits.str.len()==1 and predicted_answer_digits.str.len()==1")
+    .assign(
+        answer_digits=lambda x: x["answer_digits"].apply(lambda y: y[0]).astype(int),
+        predicted_answer_digits=lambda x: x["predicted_answer_digits"]
+        .apply(lambda y: y[0])
+        .astype(int),
+        err=lambda x: x["predicted_answer_digits"] - x["answer_digits"],
+        rel_err=lambda x: (x["predicted_answer_digits"] - x["answer_digits"]) / x["answer_digits"],
+        abs_err=lambda x: (x["predicted_answer_digits"] - x["answer_digits"]).abs(),
+        abs_per_err=lambda x: (
+            (x["predicted_answer_digits"] - x["answer_digits"]).abs() / x["answer_digits"]
+        )
+        * 100,
+        log_err=lambda x: np.log(x["predicted_answer_digits"] + 1) - np.log(x["answer_digits"] + 1),
+    )
+)
+
+ax = sns.boxenplot(
+    temp_err_df,
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df, y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Current results
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df,
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df, y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Some examples
+
+Examples where |error| is > 1900
+
+```{python}
+from IPython.core.display import display, HTML
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[0]].style.set_table_attributes("style='font-size:25px; width:100%'")
+display(HTML(df.to_html()))
+```
+## Some examples
+
+Examples where |error| is > 1900
+
+```{python}
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[1]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+## Some examples
+
+Examples where |error| is > 1900
+
+```{python}
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[2]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+## Some examples
+
+Examples where |error| is > 1900
+
+```{python}
+df = temp_err_df.query("err.abs() > 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[3]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+## Current results
+
+After removing these outliers, the data is easier to understand
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<1900"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<1900"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Current results
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<1900"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<1900"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+
+## Some examples
+
+Examples where 1900 > |error| > 100
+
+```{python}
+df = temp_err_df.query("err.abs() > 100 and err.abs() < 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[0]].style.set_table_attributes("style='font-size:35px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+## Some examples
+
+Examples where 1900 > |error| > 100
+
+```{python}
+df = temp_err_df.query("err.abs() > 100 and err.abs() < 1900").assign(
+    reasoning=lambda x: x["predicted_answer"].str.split("&&").apply(lambda y: y[1])
+).loc[:, ["question", "answer", "predicted_answer_wo_reas", "reasoning"]].rename(
+    columns={"predicted_answer_wo_reas": "predicted_answer"}
+).iloc[[1]].style.set_table_attributes("style='font-size:25px; width:100%'")
+display(HTML(df.to_html()))
+```
+
+
+## Current results
+
+The plot is again easier to inspect after removing answers with |error| > 100
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<100"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Current results
+
+Most errors hover around 0. How many are at exactly 0?
+
+```{python}
+ax = sns.countplot(x=np.where(temp_err_df["err"] == 0, "Error of 0", "|Error| > 0"))
+```
+
+## Current results
+
+After __also__ removing errors == 0, still most errors are close to 0.
+
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<100 and err!=0"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100 and err!=0"), y="err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Current results
+
+After __also__ removing errors == 0, still most errors are close to 0.
+
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs()<100 and err!=0"),
+    y="err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+ax.set_yscale("symlog")
+sns.stripplot(
+    data=temp_err_df.query("err.abs()<100 and err!=0"), y="err", color="k", ax=ax
+)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Error in number of years")
+ax.set_title("Boxedplot of Error in Number of Years");
+```
+
+## Current results
+
+Is GPT-4 over- or undershooting?
+
+```{python}
+ax = sns.countplot(
+    x=np.where(temp_err_df.query("err!=0")["err"] > 0, "Error > 0 ", "Error < 0")
+)
+```
+
+## Current results
+
+Most common errors
+
+```{python}
+temp_err_df.rename(columns={"err": "Error in years"}).loc[:, "Error in years"].value_counts().iloc[
+    :5
+].to_frame()
+```
+
+## Current results
+
+Most common errors, as absolute values
+
+```{python}
+temp_err_df.rename(columns={"abs_err": "|Error| in years"}).loc[:, "|Error| in years"].value_counts().iloc[
+    :5
+].to_frame()
+```
+
+## Current results
+
+The relationship changes when looking at relative errors.
+
+```{python}
+ax = sns.boxenplot(
+    temp_err_df.query("err.abs() < 100"),
+    y="rel_err",
+    color="b",
+    width_method="linear",
+    k_depth="trustworthy",
+    outlier_prop=0.007,
+    showfliers=False,
+)
+# ax.set_yscale("symlog")
+sns.stripplot(data=temp_err_df.query("err.abs()<100"), y="rel_err", color="k", ax=ax)
+ax.set_xlabel("Width is a scale free, linear rep. of amount of data")
+ax.set_ylabel("Rel. error")
+ax.set_title("Boxedplot of Relative Error");
+```
+
+## Current results
+
+
+```{python}
+rel_error = temp_err_df.rel_err
+print(
+    f"Mean rel. error, where error > 0: {np.mean(rel_error[rel_error > 0]):.2f} ± {np.std(rel_error[rel_error > 0]):.2f}"
+)
+print(
+    f"Mean rel. error, where error < 0: {np.mean(rel_error[rel_error < 0]):.2f} ± {np.std(rel_error[rel_error < 0]):.2f}"
+)
+print(f"Mean rel. error over all:          {np.mean(rel_error):.2f} ± {np.std(rel_error):.2f}")
+
+```
+
+## Current thoughts
+
+- Why do most incorrect answers have an errors ± 1?
+    - Underspecified month?
+    - Digit representation?
+- How do I explore patterns in errors faster?
+    - Use large model to summarise errors based on  question, expected and predicted answer, and reasoning?
+    - Clustering? Usually not happy with results

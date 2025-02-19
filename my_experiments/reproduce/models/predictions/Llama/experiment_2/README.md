@@ -11,4 +11,4 @@ I stopped stripping the prompt because in a small sample, it seemed to hurt perf
 In the CoT experiment, the prompts as found in this repo encouraged the model to separate the answer and the reasoning with "&&". I split the string to keep just the answer. I also explicitly search for "Reasoning:" in the string for the few cases where it did not work and keep the part before the mention of the "Reasoning:" string.
 
 ## Code to produce this result
-A python script is added in this folder to describe the way I did prompting to produce these results.
+A python script is added in this folder to describe the way I did prompting to produce these results. Note, you will need to adopt paths to re-run experiments
