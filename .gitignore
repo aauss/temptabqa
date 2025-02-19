@@ -1,0 +1,18 @@
+# macOS
+**/.DS_Store
+*.DS_Store
+# Python tmp files
+__pycache__
+.mypy
+
+
+# Environments
+.env
+.venv
+
+# Misc
+wget-log
+test.ipynb
+*.out
+machine.file*
+

@@ -1,0 +1,41 @@
+[project]
+name = "temptabqa"
+version = "0.1.0"
+description = "Codebase for TempTabQA paper"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas==2.2.2",
+    "tqdm",
+    "easyllm",
+    "pyarrow==17.0.0",
+    "transformers>=4.35.2",
+    "torch>=2.5.1",
+    "ipywidgets>=8.1.5",
+    "datasets>=3.1.0",
+    "beautifulsoup4>=4.12.3",
+    "accelerate>=1.1.1",
+    "python-dotenv>=1.0.1",
+    "setuptools>=75.5.0",
+    "rouge-score>=0.1.2",
+    "nltk>=3.9.1",
+    "evaluate>=0.4.3",
+    "plotly>=6.0.0",
+    "seaborn>=0.13.2",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "bitsandbytes>=0.44.1 ; sys_platform == 'linux'",
+]
+[tool.uv]
+dev-dependencies = [
+    "ipykernel",
+    "mypy>=1.13.0",
+    "nbclient>=0.10.2",
+    "nbformat>=4.2.0",
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 100

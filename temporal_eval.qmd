@@ -1,0 +1,62 @@
+---
+title: "Temporal evaluation of TempTabQA"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+```{python}
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+```
+
+
+```{python}
+df = pd.read_csv(
+    "models/predictions/gpt4/fewshot_without_reasoning/indomain_eval_gpt_4_few_shot_single.csv"
+)
+df_size = df.shape[0]
+df_no_em = df.query("predicted_answer.str.lower() != actual_answer.str.lower()")
+df_size_no_em = df_no_em.shape[0]
+
+print(f"The head dataset contains {df_size} QA pairs. {df_size_no_em} are not exact matches")
+```
+
+```{python}
+df_no_em = df_no_em.assign(
+    predicted_nums_only=lambda x: x["predicted_answer"].str.findall("\d+"),
+    actual_nums_only=lambda x: x["actual_answer"].str.findall("\d+"),
+)
+```
+
+```{python}
+df_single_digit_match = df_no_em.query(
+    "predicted_nums_only == actual_nums_only and actual_nums_only"
+)
+df_size_single_digit_match = df_single_digit_match.shape[0]
+print(
+    f"Of the non matching QA pairs, there are {df_size_single_digit_match} matches if we only compare digits.\nThis leaves us with {df_size_no_em-df_size_single_digit_match} QA pairs that are not an exact match\nnor are they matching over digits only."
+)
+```
+
+```{python}
+#| output: false
+# Double check that matches make sense
+df_single_digit_match.query("predicted_nums_only.str.len() >1")
+```
+```{python}
+df_no_em_or_digit = df_no_em.drop(df_single_digit_match.index)
+```
+```{python}
+df_no_match_not_temp = df_no_em_or_digit.query(
+    "~(actual_answer.str.lower().str.contains('year') "
+    "or actual_answer.str.lower().str.contains('month') "
+    "or actual_answer.str.lower().str.contains('day') "
+    "or question.str.lower().str.contains('when') "
+    "or question.str.lower().str.contains('year'))"
+)
+print(f"If we remove QA pairs that have 'year', 'month', or 'day' in the question or answer\nor contain the word 'when', we are left with {df_no_match_not_temp.shape[0]} QA paris of which we don't know which are temporal or not.")
+df_no_match_not_temp.to_csv("head_dataset_no_em_not_temp.csv", index=False)
+```
