@@ -194,7 +194,6 @@ gtp4_temp_nm = gpt4_no_dm.query(
     "or question.str.lower().str.contains('if mars express begins')"
 )
 print(f"If we only keep QA pairs where the expected answer is temporal\nor the question ask for some time measure, we are left with  {gtp4_temp_nm.shape[0]} QA paris.")
-# df_no_match_not_temp.to_csv("head_dataset_no_em_not_temp.csv", index=False)
 ```
 
 ### Parallel: Automated classification of expected temporal answer
