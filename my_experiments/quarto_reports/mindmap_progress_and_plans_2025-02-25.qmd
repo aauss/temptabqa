@@ -1,0 +1,47 @@
+```{mermaid}
+mindmap
+  root(**Temporal error analysis**)
+    (**Misc**)
+        Metadata standard for temp. QA
+        Overview of postproc. in existing benchmarks
+        TEA vs F1/BERTscore on fake model resp
+        Human eval for reference
+
+    (**Experiments**)
+        Asses temporal error
+            Extract temp. entities
+            Normalise temp. entities
+        )Finetune with TEA(
+        )LLMaaJ on </br>output + reas.(
+        )Use tools for </br>arithmetic(
+
+    (**Data with temp. answers**)
+        In the wild
+            TempTabQA
+                ~1100 in head dataset
+                )Tail dataset( 
+        Synthetic
+            )Test of Time(
+                )~1300 Arithmetic(
+                )~11k Semantic(
+        Thirds
+            )Timo(
+            )TempUN(
+
+    (**Contributions**)
+        )New dataset(
+        (Challenge model rankings)
+        (Alternative to F1)
+            RMSE
+            Interpretable
+                Vanilla/abs error
+                MAPE
+            )Normalised(
+                Sigmoid/Saturation func.
+                Clipped min-max
+                "Don't know"
+        (Identify model bias)
+            Error  +/- 1 most common
+            Overshoot more pronounced
+            )"Find biases (numbers/period)"(
+```

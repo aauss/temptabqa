@@ -1,0 +1,240 @@
+---
+title: "Supervision"
+author: "Auss Abbood"
+date: "2025-02-28"
+format: revealjs
+slide-number: true
+execute:
+  echo: false
+jupyter: python3
+---
+
+## Overview
+
+- Timeline until submission
+- Use absolute errors for TEA
+- Normalise TEA
+- What is my scope?
+  - Critique
+  - Status quo and outlook
+- Discussion
+
+## Timeline until submission
+
+```{mermaid}
+gantt
+    tickInterval 1week
+    weekday monday
+    title Submit to ARR on 19 May
+    dateFormat YYYY-MM-DD
+    section Work packages
+        Scoping             :a1, 2025-03-03, 2w
+        Data Preparation    :a2, 2025-03-10, 2w
+        Experiment Design   :a3, 2025-03-10, 2w
+        Run Experiments     :a4, 2025-03-17, 4w
+        Writing draft       :a5, 2025-03-24, 4w
+        Internal review     :a6, 2025-04-18, 2w
+        Final editing       :a7, after a6,   2w
+    section Term Break
+        Term break          :b1, 2025-03-21, 2025-04-29
+```
+
+## Use absolute errors for TEA
+
+- Was using relative error for TEA
+- Needs absolute/squaring to avoid signed errors canceling each other out
+- Preferred MAPE over RMSE due to interpretability
+
+:::: {.columns}
+
+::: {.column width="60%"}
+| Model  | MAPE   | 0.9 Quantile |
+|--------|-------:|-------------:|
+| PaLm 2 | 82.14  | 45.33        |
+| GPT-4  | 365.34 | 21.75        |
+|Llama 2 | 1365.02| 86.11        |
+:::
+
+::: {.column width="40%"}
+| Model  | F1     |
+|--------|-------:|
+| GPT-4  | 80.16  |
+| PaLM 2 | 69.33  |
+| Llama 2| 57.85  |
+:::
+
+::::
+
+## Normalise TEA metrics
+
+- MAPE/MAE are not defined when LLM does not answer question
+  - "Which year comes after 2011?" -- "_Green house_."
+- Infinite error or separate treatment reduce comparability
+- If potentially used for learning, TEA metrics should be $\in[0,1]$
+
+
+## Normalise TEA metrics
+
+- Smoothing: $1- \exp{\frac{|\epsilon|}{\alpha}}$
+  - $\alpha$ determines how fast function saturates. $\alpha = 1$ saturates around 1 and $\alpha=10$ saturates around 50
+  - Could use heuristic assuming no one wants MAPE > 100
+  - This heuristic is not possible for MAE
+  - Lower bound for $\alpha$ could be motivated by FPR of F1
+
+## Normalise TEA metrics
+
+- Capped normalisation: $\min(\frac{\epsilon}{E_{max}}, 1)$
+  - $E_{max}$ will depend on application
+  - More intuitive than $\alpha$ but less to find a value suitable for different benchmarks
+
+# What is my scope
+
+## Critique
+
+- Is showing a difference in rankings enough?
+- Is my main contribution a metric? If yes, is it novel enough?
+- If metric is not main contribution, is it postprocessing? Would a package be more suitable?
+
+## Is showing a difference in rankings enough?
+
+::: {.r-fit-text}
+- No but it could be part of identifying evaluation gaps
+- What is are the shortcomings of F1 and co leading to this gap?
+  - "FP": Expected: "They married in October 1998", Predicted: "They married in October 1997"
+  - "FN": Expected: "1961", Predicted: "November 10, 1961"
+  - Small experiments showed a difference of 0.06 in F1
+- Gaps don't need to be bridged with TEA
+  - More precise questions during benchmark design
+:::
+
+## Is my main contribution a metric?
+
+::: {.r-fit-text}
+- No, but I am not alone making QA work better for temporal problems
+- Design of datasets and metrics is heterogenous:
+  - F1 combined with heavy post-processing (TempTabQA)
+  - Multiple-choice to make evaluation for faithful (TRAM, CoTempQA, TempUN)
+  - Enforce JSON-formatted output (Test of Time)
+- Similar work to TEA:
+  - TempReason: Arithmetic questions are evaluated using MAE
+  - Test of Time: Identified biases based on temporal error
+  - ComplexTempQA: Dates are normalised for eval
+:::
+
+---
+
+- Can TEA motivate to standardise evaluation?
+  - Enforce output format
+  - Encourage normalisation of in-/output
+  - Ask more precise questions
+
+
+## When ad how are new metrics introduced?
+
+
+- Rahnamoun and Shamsfard (COLING 2025) 
+  - Motivation: LLM-as-a-Judge aligns well with human preference but is expensive. Suite of metrics can be a good replacement
+  - Experiment: Tested combinations of existing metrics for better QA eval that is on par with LLM-as-a-Judge. All tested with human preference.
+
+---
+
+- Hu et al. (COLING 2025)
+  - Motivation: F1 not precise enough for legal QA. E.g., numbers of statutes wrong and not punished enough
+  - Experiment: Proposed special metrics. Two using LLM-as-a-Judge and one using regex of statutes. Scores motivated by (self-defined) classes of hallucination. Human preference tested on sub-sample.
+
+
+## If metric is not main contribution, is it postprocessing?
+
+- I don't think so. In my opinion, it is better to have a better benchmark design (c.f. Test of Time)
+- With better LLMs, postprocessing is going to be less of a problem
+  - Trend already visible in my TempTabQA experiments
+  - Larger, newer models produce shorter answers closer to the expected format
+
+##
+
+```{mermaid}
+---
+title: Story
+---
+graph LR
+    RQ["Is F1 & co. enough </br>for temporal QA?"]
+
+
+    %% Motivation
+    FN["'12 month' </br>== 'one year'"]
+    FP["F1('5 years', x) </br>== F1('100 years', x)"]
+    interpretability["F1 hard to interpret"]
+    temp_prec["Temp. precision</br>relevant in application"]
+    
+    %% Contribution
+    interp_met["Interpretable </br>evaluation"]
+    chall_rank["Challenge model ranking"]
+    err_types(["Error types"])
+    new_data(["New dataset w/ </br>temp. answers only"])
+    improve(["Improve performance"])
+    quant_f1_err(["Quantify FP and FN of F1"])
+    
+    
+    %% Data
+    data[Data]
+    data_type1[In the wild]
+    data_type2[Synthetic]
+    tot(["Test of Time"])
+
+    %% Methods
+    tea["Temporal error analysis"]
+    temp_ent_ext["Extract temp. entities"]
+    temp_ent_norm(["Normalise temp. entitites"])
+    vanilla_err["Vanilla error"]
+    rel_err([MAPE/Norm. Metric])
+    F1_temp(["Temp. adjusted F1"])
+    
+    %% Results
+    bias["Bias </br>identification"]
+    error["Most freq. error ± 1"]
+    error_dir["P(e > 0) > P(0 < e)"]
+    model_rank["Model ranking changes"]
+    low_prob_time(["Bias based on in-/output time?"])
+    
+    RQ ====> Motivation
+        Motivation -->|False Neg.| FN
+        Motivation -->|False Pos.| FP
+        Motivation --> temp_prec
+        Motivation --> interpretability
+
+    RQ ==> Contribution
+        Contribution --> interp_met
+        Contribution -->  chall_rank
+        Contribution --> quant_f1_err
+        Contribution --identify--> err_types
+            err_types --> improve
+
+        Contribution --"from existing"--> new_data
+
+    RQ ====> Results
+        Results --> bias
+            bias --> error
+            bias --> error_dir
+            bias --> low_prob_time
+        Results --> model_rank
+
+    RQ ==> data
+        data --> data_type1
+        data --> data_type2
+        data_type1 --"~1100"--> TempTabQA
+        data_type2 --"~11000"--> tot
+    
+    RQ ==> Methods
+        Methods --> tea
+            tea --"for bias/err. class."--> vanilla_err
+            tea --"for model ranking"--> rel_err
+            tea --"for model ranking" --> F1_temp
+        Methods --> temp_ent_ext
+        Methods --> temp_ent_norm
+
+classDef pink fill:#FFEBEB;
+class rel_err,temp_ent_norm,err_types,new_data,tot,improve,quant_f1_err,low_prob_time,F1_temp pink
+
+```
+
+
