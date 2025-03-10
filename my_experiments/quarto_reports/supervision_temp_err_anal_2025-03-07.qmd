@@ -1,0 +1,407 @@
+---
+title: "Supervision"
+author: "Auss Abbood"
+date: "2025-03-07"
+format: revealjs
+slide-number: true
+execute:
+  echo: false
+jupyter: python3
+---
+
+## Overview
+
+- Metrics
+  - Forecasting-based
+  - Non-forecasting based
+- Error drilldown
+- Flaws in benchmark design
+- Experiment scaling
+- Progress
+
+## Reminder: Goal of metrics
+
+- Reduce false positives/negatives compared to F1 and co.
+- Identify biases
+- Be more interpretable
+
+## How should harm be defined in temporal QA?
+
+- QA at the moment mostly binary but problem is not binary
+- Harm depends on application (small error okay in epi, but not in scheduling),
+- may depend on variance if error is small enough and vice versa,
+- or may depend on temporal scale (practically non-existent in benchmarks)
+
+## Metrics considered
+
+::: {.r-fit-text}
+| Metric | Definition                                                                                                                | Pros                                                      | Cons                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
+| Error  | $e = y_i - \hat{y_i}$                                                                                                     | Intuitive, keeps original units, keeps direction of error | Can't be aggregated                                      |
+| MAE    | $e = \frac{1}{N} \sum_{i\in N}     \vert {y_i -\hat{y_i}} \vert$                                                          | Intuitive, keeps original units, can be aggregated        | Direction of error is lost                               |
+| MAPE   | $e = \frac{100\%}{N} \sum_{i\in N} \vert {y_i -\hat{y_i}} \vert /\vert y_{i}\vert$                                        | Scale-independent, intuitive, has lower bound             | Heavier penalty for neg. errors, no upper bound          |
+| SMAPE  | $e = \frac{1}{N} \sum_{i\in N} \vert {y_i -\hat{y_i}} \vert / (\vert y_{i}\vert + \vert \hat{y_{i}}\vert)\frac{1}{2}$ | Scale-independent, has upper & lower bound                | Similar biases as MAPE. Not comparable across benchmarks |
+
+- Log possible to overemphasises small errors. But these are the most common and log is harder to interpret
+:::
+
+## Metrics discarded
+
+::: {.r-fit-text}
+| Metric    | Definition                                                  | Pros                                                  | Cons                                            |
+| --------- | ----------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
+| RSME      | $e = \sqrt{\frac{1}{N} \sum_{i\in N}  (y_i -\hat{y_i})^2 }$ | Keeps original unites, penalises larger errors        | Harder to interpret                             |
+| MASE      | $MAE / MAE_{naive}$                                         | Scale-independent, handles zero values, interpretable | Hard to compare without established naive model |
+| Theil's U | $RMSE / RMSE_{naive}$                                       | Scale-independent, handles zero values, interpretable | Hard to compare without established naive model |
+
+- Unless, I find a good baseline to use MASE (e.g., middle of century)
+:::
+
+## Metrics discarded
+
+- AUC in Milan's paper is bounded in distance error (circumference of earth) and by finite number of toponyms
+- Temporal error could be bounded through capped max error or smoothing. Benefit unclear.
+- AUC alternatives in forecasting/regression require capping, binarisation, or focus on ranks rather than actual value
+
+## Non-forecasting metrics
+
+::: {.r-fit-text}
+| Metric         | Definition                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Allan variance | $\sigma^2 = \frac{1}{2} <(\bar{y}_{n+1} - \bar{y}_{n})^2>$ </br></br> $\bar{y}_i = \frac{x(iT+\tau) -x(iT)}{\tau}$ |
+| Time error     | $TE(t) = T(t) - T_{ref}(t)$                                                                                        |
+| Settling time  | $- \frac{\ln(\text{tolerance fraction})}{\text{damping ratio * natural freq.}}$                                    |
+| $F1_{temp}$    | $2 \cdot \frac{P_{temp} \cdot R_{temp}}{P_{temp}+ R_{temp}}$                                                       |
+
+- Allen var.: Answer should stay consistent despite rephrasing or more complex questions
+- Settling time: Number of reasoning steps until answer could be measured
+- $F1_{temp}$ : F1 on only temporal entities, signal words, and digits
+:::
+
+# Visualisations complementing biases
+
+## Visualisation inspired by Allan variance
+
+```{python}
+from glob import glob
+from itertools import product
+import sys
+
+import pandas as pd
+from upsetplot import plot
+
+sys.path.append("../temp_error_analyis/")
+from utils import add_temp_errors, extract_digits_from_answers, merge_with_indomain_year_only
+
+df = pd.read_csv(
+    "./../../models/predictions/gpt4/fewshot_with_reasoning/indomain_eval_gpt_4_few_shot_with_reasoning_single.csv"
+)
+df = (
+    df.pipe(merge_with_indomain_year_only)
+    .pipe(extract_digits_from_answers)
+    .query("answer_digits.str.len()==1 and predicted_answer_digits.str.len()==1")
+    .pipe(add_temp_errors)
+)
+
+df.loc[:, ["answer_digits", "predicted_answer_digits"]].sort_values(by="answer_digits").plot(
+    kind="scatter",
+    x="answer_digits",
+    y="predicted_answer_digits",
+    xlabel="Expected answer as digit",
+    ylabel="Predicted answer as digit",
+)
+```
+
+## Visualisation inspired by Allan variance
+
+```{python}
+df.loc[:, ["answer_digits", "predicted_answer_digits"]].sort_values(by="answer_digits").plot(
+    kind="scatter",
+    x="answer_digits",
+    y="predicted_answer_digits",
+    logx=True,
+    logy=True,
+    xlabel="Log of expected answer as digit",
+    ylabel="Log of predicted answer as digit",
+)
+
+```
+
+## Digit bias
+
+```{python}
+import pickle
+from collections import Counter
+
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
+
+num_dist = (
+    pd.read_csv(
+        "./../../models/predictions/gpt4/fewshot_with_reasoning/indomain_eval_gpt_4_few_shot_with_reasoning_single.csv"
+    )
+    .pipe(merge_with_indomain_year_only)
+    .pipe(extract_digits_from_answers)
+    .loc[:, ["answer_digits", "predicted_answer_digits"]]
+)
+
+answer_digits = num_dist.loc[:, "answer_digits"].values
+pred_digits = num_dist.loc[:, "predicted_answer_digits"].values
+
+filtered_pred_digits = []
+
+for ans, pred in zip(answer_digits, pred_digits):
+    answer_digits_counter = Counter(int(i) for i in ans)
+    pred_digits_counter = Counter(int(i) for i in pred)
+    pred_digits_counter.subtract(answer_digits_counter)
+    filtered_pred_digits.extend(list(pred_digits_counter.elements()))
+
+
+digit_counts = Counter(filtered_pred_digits)
+sorted_digits = sorted(digit_counts.keys())
+
+# Prepare data for plotting
+x_vals = sorted_digits
+y_vals = [digit_counts[d] for d in sorted_digits]
+
+# Plot a bar chart
+plt.bar(x_vals, y_vals)
+# plt.xlim(0, max(y_vals))
+# Labeling
+plt.xlabel("Surplus digits in prediction")
+plt.ylabel("Frequency of surplus digit")
+plt.title("Distribution of surplus digits in prediction")
+
+# Display the plot
+plt.show()
+
+```
+
+## Digit bias
+
+```{python}
+f, ax = plt.subplots()
+ax.bar(x_vals, y_vals)
+ax.set_xlim(0, 30)
+
+# Labeling
+ax.set_xlabel("Surplus digits in prediction")
+ax.set_ylabel("Frequency of surplus digit")
+ax.set_title("Distribution of surplus digits in prediction")
+
+# Display the plot
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+plt.show();
+```
+
+## Digit bias
+
+```{python}
+
+with open(
+    "./../temp_error_analyis/data/notebook_output/05_gpt2_logloss_per_digit.pickle", "rb"
+) as f:
+    digit_to_loss = pickle.load(f)
+
+plt.fill_between(range(len(digit_to_loss)), list(digit_to_loss.values()), alpha=0.9)
+
+plt.xlabel("Digit")
+plt.ylabel("Logloss of GPT-2")
+
+# Display the plot
+plt.show()
+```
+
+## Digit bias
+
+```{python}
+plt.bar(range(30), list(digit_to_loss.values())[:30])
+
+plt.xlabel("Digit")
+plt.ylabel("Logloss of GPT-2")
+
+# Display the plot
+plt.show()
+```
+
+# Bias identification helps with error classification
+
+## Error drilldown 
+
+```{python}
+labeled_wrongs = (
+    pd.read_json(
+        "./../temp_error_analyis/data/05a_gpt4_indomain_wrong_pred_labeled.json", orient="records"
+    )
+    .loc[:, ["annotations", "data"]]
+    .drop(30)
+    .assign(
+        question=lambda x: x["data"].apply(lambda y: y["question"]),
+        answer=lambda x: x["data"].apply(lambda y: y["answer"]),
+        predicted_answer_old=lambda x: x["data"].apply(lambda y: y["predicted_answer_old"]),
+        is_gold_correct=lambda x: x["annotations"].apply(
+            lambda y: y[0]["result"][0]["value"]["text"][0]
+        ),
+        is_reasoning_correct=lambda x: x["annotations"].apply(
+            lambda y: y[0]["result"][1]["value"]["text"][0]
+        ),
+        is_arithmetic_correct=lambda x: x["annotations"].apply(
+            lambda y: y[0]["result"][2]["value"]["text"][0]
+        ),
+    )
+    .drop(columns=["annotations", "data"])
+)
+upset_df = (
+    labeled_wrongs.query("is_arithmetic_correct != '-'")
+    .replace(
+        {
+            "zes": "yes",
+        }
+    )
+    .replace({"yes": True, "no": False, "wrong": False})
+    .groupby(["is_gold_correct", "is_reasoning_correct", "is_arithmetic_correct"])
+    .size()
+)
+
+plot(upset_df, sort_by="cardinality", show_percentages=True, element_size=60);
+```
+
+## Error drilldown
+
+- Reminder: Most errors have an error of one
+- *New*: 81% of wrong predictions have correct reasoning
+- Benchmark design is flawed. Consider:
+
+  ::: {.fragment}
+  - *If someone is born in 2000, how old are they now?*
+  :::
+
+  ::: {.fragment}
+  - Context: _Jane Doe Played in Team A from 1981-1991 and 1996._
+  - Question: How long did Jane Doe play for Team A?
+  - Answer: ?
+  :::
+
+## Error drilldown
+
+- If we want the diff between two years, but don't know the day and month of both,
+
+:::{.incremental}
+- and the start/end day is uniformly distributed,
+- then the difference in years ~ 50% of the times is: $$y_{end} - y_{start} - 1$$ 
+- In this dataset, humans seem to predominantly disregard the shorter case and GPT-4 does the opposite
+:::
+
+## Benchmark flaws
+
+:::{.incremental}
+- For most errors (imprecise question, unclear duration), model might as well be right
+- Found questions that "leak" relevant context
+- Some questions reveal necessary arithmetic, e.g., *how much longer was X than Y?*
+  - Could motivate trick questions
+:::
+
+## Outlook on error drilldown
+
+:::{.r-fit-text}
+- Extract hard questions and use as foundation for synthetic dataset
+- Thereby consider extraction from context, question understanding, and arithmetic
+  - E.g., found GPT-4 sometimes explain rather than reason which hurts performance
+  - How well model deals with different time granularities (being asked for years but context contains dates)
+  - How do biases change over much larger (context) time spans?
+  - Is bias consistent across time granularities (year...seconds)?
+:::
+
+
+
+## Experiment scaling
+
+```{mermaid}
+
+mindmap
+  root(Experiments)
+    ((**Model**))
+      Open-source
+        Llama 3
+        R1 distil
+        Gemma
+        Mistral
+        PaLM
+        Timo
+        )Math LLMs(
+      Closed-source
+        Gemini
+        Claude
+        GPT
+    ((**Method**))
+      0-shot
+      few-shot
+      CoT
+      )special. methods(
+      )using tools(
+    ((**Metrics**))
+      Token-level
+        F1
+        EM
+        METEOR
+        ROUGE
+        )BERTscore(
+      Temporal
+        mape["(S)MAPE"]
+        MAE
+        Vanilla Error
+        )Allan variance(
+        )F1-Temp(
+```
+
+## Timeline until submission
+
+```{mermaid}
+gantt
+    tickInterval 1week
+    weekday monday
+    title Submit to ARR on 19 May
+    dateFormat YYYY-MM-DD
+    section Work packages
+        Scoping             :a1, 2025-03-03, 2w
+        Data Preparation    :a2, 2025-03-10, 2w
+        Experiment Design   :a3, 2025-03-10, 2w
+        Run Experiments     :a4, 2025-03-17, 4w
+        Writing draft       :a5, 2025-03-24, 4w
+        Internal review     :a6, 2025-04-18, 2w
+        Final editing       :a7, after a6,   2w
+    section Term Break
+        Term break          :b1, 2025-03-21, 2025-04-29
+```
+
+
+
+<!-- # What is my scope
+
+## Critique
+
+- Is showing a difference in rankings enough?
+- Is my main contribution a metric? If yes, is it novel enough?
+- If metric is not main contribution, is it postprocessing? Would a package be more suitable?
+
+
+- Can TEA motivate to standardise evaluation?
+  - Enforce output format
+  - Encourage normalisation of in-/output
+  - Ask more precise questions
+
+
+## When ad how are new metrics introduced?
+
+- Rahnamoun and Shamsfard (COLING 2025) 
+  - Motivation: LLM-as-a-Judge aligns well with human preference but is expensive. Suite of metrics can be a good replacement
+  - Experiment: Tested combinations of existing metrics for better QA eval that is on par with LLM-as-a-Judge. All tested with human preference.
+
+---
+
+- Hu et al. (COLING 2025)
+  - Motivation: F1 not precise enough for legal QA. E.g., numbers of statutes wrong and not punished enough
+  - Experiment: Proposed special metrics. Two using LLM-as-a-Judge and one using regex of statutes. Scores motivated by (self-defined) classes of hallucination. Human preference tested on sub-sample.
+ -->
+
