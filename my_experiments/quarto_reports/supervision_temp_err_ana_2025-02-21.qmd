@@ -70,7 +70,7 @@ ___
 
 ## Problems with FlanT5
 
-::: {.incremental}
+::: {.r-fit-text .incremental}
 - Hard to extract final numeric answer
 - Model's output did not answer question, had too many digits, or was truncated
     - E.g., "The last time Art Carney was married was in 1977. He died in 2003. So,"
